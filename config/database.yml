@@ -1,0 +1,20 @@
+production:
+  adapter: mysql
+  username: root
+  database: bart2_flat_tables
+  password: admin
+  host: localhost
+
+development:
+  adapter: mysql
+  username: root
+  database: bart2_flat_tables
+  password: admin
+  host: localhost
+
+test: &TEST
+  adapter: mysql
+  username: root
+  database: bart2_flat_tables
+  password: admin
+  host: localhost

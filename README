@@ -1,0 +1,27 @@
+BART2 COHORT
+============
+
+This is Anti-Reroviral Therapy cohort tool based on the application developed by 
+Baobab Health Trust which runs on OpenMRS over MySQL.
+
+Initially it has:
+    - 1 view
+    - 2 controllers although the main one is one
+    - 2 models
+    
+It expects a path of the format:
+
+    http://localhost:3000/cohort?start_date=2013-01-01&end_date=2013-04-04
+    
+that is, it expects at least 2 parameters which are:
+
+    - start_date and
+    - end_date
+    
+to run.
+
+The fields are loaded dynamically using AJAX and the different iitems have individual methods that populate them.
+
+Happy coding!
+
+Baobab Health Trust Software Crew!
