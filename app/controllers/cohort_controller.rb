@@ -43,13 +43,32 @@ class CohortController < ActionController::Base
   def new_total_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL 
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id LIMIT 1")                  
+    
+    value = patients[0].new_total_reg.to_i unless patients.blank?
+    render :text => value 
   end
 
   def cum_total_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL 
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
+      GROUP BY t1.patient_id LIMIT 1")                  
+    
+    value = patients[0].new_total_reg.to_i unless patients.blank?
+    render :text => value 
   end
 
   def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
