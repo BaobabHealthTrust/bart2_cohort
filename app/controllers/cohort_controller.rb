@@ -4,6 +4,12 @@ class CohortController < ActionController::Base
   def index
   end
 
+  def select_date    
+  end
+
+  def cohort    
+  end
+
   def current_site
     render :text => "Test Site"
   end

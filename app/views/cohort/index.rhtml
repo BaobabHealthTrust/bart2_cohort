@@ -10,12 +10,13 @@
                 border: 1px solid #ccc;
             }
             .header {
-                font-size: 24px;
+                font-size: 28px;
             }
             .heading {
                 border: 1px solid #ccc;
                 font-weight: bold;
                 font-size: 18px;
+                color: #6281A7;
             }
             .num {
                 text-align: center;
@@ -24,31 +25,35 @@
         </style>
     </head>
     <body>
-        <table id="report" width="100%" cellspacing="0" cellpadding="5">
+        <table id="report" width="100%" cellspacing="2" cellpadding="5">
             <tr>
-                <th colspan="4" class="header">
+                <th style="background-color: #ccc;">
+                    &nbsp;
+                </th>
+                <th colspan="4" class="header" style="background-color: #6281A7;
+                    padding: 10px; color: #fff; font-weight: normal;">
                     <span id="qtr">{quarter}</span> Cohort Report
                 </th>
             </tr>
             <tr>
-                <th>
+                <th style="background-color: #ccc;">
                     &nbsp;
                 </th>
-                <td id="site" class="normalcell header">
+                <td id="site" class="normalcell header" style="color: #6281A7;">
                     {site}
                 </td>
-                <td class="heading">
+                <td class="heading" style="color: #6281A7;">
                     Newly Registered in Quarter 
                 </td>
-                <td class="heading" colspan="2">
+                <td class="heading" colspan="2" style="color: #6281A7;">
                     Cumulative Ever Registered
                 </td>
             </tr>
             <tr>
-                <th>
+                <th style="background-color: #ccc;">
                     &nbsp;
                 </th>
-                <td class="heading">
+                <td class="heading" style="color: #6281A7;">
                     Patient Registration Details
                 </td>
                 <th class="normalcell">
@@ -59,7 +64,7 @@
                 </th>
             </tr>
             <tr>
-                <td>
+                <td style="background-color: #ccc;">
                     &nbsp;
                 </td>
                 <td class="normalcell">
@@ -198,7 +203,7 @@
                     "tb_confirm_not_treat", "/field?field=tb_confirm_not_treat"],
                 [51, "&nbsp;", 3, null, "TB confirmed, on TB treatment",,,,,,"tb_confirmed", 
                     "/field?field=tb_confirmed"],
-                ["&nbsp;", "&nbsp;", 3, null, "Unknown TB status",,,,,,"unknown_tb", "/field?field=unknown_tb"],
+                [52, "&nbsp;", 3, null, "Unknown TB status",,,,,,"unknown_tb", "/field?field=unknown_tb"],
                 ["&nbsp;", "&nbsp;", 3, null, "&nbsp;"]
             ];
             
@@ -215,6 +220,8 @@
                     var cell0 = document.createElement("td");
                     cell0.innerHTML = fields[i][0];
                     cell0.style.textAlign = "right";
+                    cell0.style.color = "#fff";
+                    cell0.style.backgroundColor = (String(fields[i][0]).trim() != "&nbsp;" ? "#6281A7" : "#ccc");
                     cell0.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
                         
                     if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){ 

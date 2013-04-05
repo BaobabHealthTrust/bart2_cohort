@@ -1,7 +1,8 @@
 ActionController::Routing::Routes.draw do |map|
-	map.root :controller => "cohort"
-	map.clinic  '/cohort', :controller => 'cohort', :action => 'index'
-	map.clinic  '/field', :controller => 'cohort', :action => 'cohort_field'
+	# map.root :controller => "cohort"
+  map.cohort  '/', :controller => 'cohort', :action => 'select_date'
+	map.cohort  '/cohort', :controller => 'cohort', :action => 'select_date'
+	map.cohort  '/field', :controller => 'cohort', :action => 'cohort_field'
   # The priority is based upon order of creation: first created -> highest priority.
 
   # Sample of regular route:
