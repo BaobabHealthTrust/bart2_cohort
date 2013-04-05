@@ -459,48 +459,146 @@ class CohortController < ActionController::Base
   def new_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND (t.pulmonary_tuberculosis = 'No'
+      OR t.extrapulmonary_tuberculosis = 'No')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
   def cum_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND (t.pulmonary_tuberculosis = 'No'
+      OR t.extrapulmonary_tuberculosis = 'No')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
   def new_tb_w2yrs(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL 
+      AND t.pulmonary_tuberculosis_last_2_years = 'Yes'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
   def cum_tb_w2yrs(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.pulmonary_tuberculosis_last_2_years = 'Yes' 
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
   def new_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND (t.pulmonary_tuberculosis = 'Yes'
+      OR t.extrapulmonary_tuberculosis = 'Yes')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
   def cum_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND (t.pulmonary_tuberculosis = 'Yes'
+      OR t.extrapulmonary_tuberculosis = 'Yes')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
   def new_ks(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND t.kaposis_sarcoma = 'Yes'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
   def cum_ks(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS new_total_reg
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND t.kaposis_sarcoma = 'Yes'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
+      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id LIMIT 1")
+
+    value = patients[0].new_total_reg.to_i unless patients.blank?
     render :text => value
   end
 
