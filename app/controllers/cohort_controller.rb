@@ -420,15 +420,17 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                            
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS reason
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL 
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' 
-      AND reason_for_eligibility = 'Presumed severe HIV criteria in infants'
-      GROUP BY t1.patient_id LIMIT 1")                  
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Presumed severe HIV criteria in infants'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
     
-    value = patients[0].reason.to_i unless patients.blank?
+    value = patients.length unless patients.blank?
     render :text => value 
   end
 
@@ -438,121 +440,373 @@ class CohortController < ActionController::Base
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
     patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS reason
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL 
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
       AND reason_for_eligibility = 'Presumed severe HIV criteria in infants'
-      GROUP BY t1.patient_id LIMIT 1")                  
-    
-    value = patients[0].reason.to_i unless patients.blank?
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}' 
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value 
   end
 
   def new_conf_hiv(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'HIV infected'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
+    render :text => value 
   end
 
   def cum_conf_hiv(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'HIV infected'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_who_1_2(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND (t.reason_for_eligibility = 'CD4 count less than or equal to 350' OR
+           t.reason_for_eligibility = 'CD4 count less than 750' OR
+           t.reason_for_eligibility = 'CD4 count less than or equal to 750')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_who_1_2(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND (t.reason_for_eligibility = 'CD4 count less than or equal to 350' OR
+           t.reason_for_eligibility = 'CD4 count less than 750' OR
+           t.reason_for_eligibility = 'CD4 count less than or equal to 750')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_who_2(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Lymphocyte count below threshold with who stage 2'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_who_2(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Lymphocyte count below threshold with who stage 2'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_children(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND (t.reason_for_eligibility = 'WHO stage III peds' OR
+           t.reason_for_eligibility = 'WHO stage IV peds')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_children(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND (t.reason_for_eligibility = 'WHO stage III peds' OR
+           t.reason_for_eligibility = 'WHO stage IV peds')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_breastfeed(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Currently breastfeeding child'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_breastfeed(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Currently breastfeeding child'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_preg(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Patient pregnant'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_preg(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
+    
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Patient pregnant'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_who_3(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage III adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_who_3(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
+    
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage III adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_who_4(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage IV adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_who_4(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage IV adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def new_other_reason(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Unknown'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
   def cum_other_reason(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
+    
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id)
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Unknown'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id")
+
+    value = patients.length unless patients.blank?
     render :text => value
   end
 
