@@ -10,6 +10,10 @@ class CohortController < ActionController::Base
   def cohort    
   end
 
+  def drill_down
+    raise params.to_yaml
+  end
+
   def current_site
     render :text => "Test Site"
   end
@@ -843,227 +847,227 @@ class CohortController < ActionController::Base
   end
 
   def n1a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '1A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '1A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n1p(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '1P' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '1P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n2a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '2A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '2A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n2p(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '2P' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '2P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n3a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '3A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '3A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n3p(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '3P' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '3P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n4a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '4A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '4A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n4p(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '4P' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '4P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n5a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '5A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '5A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n6a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '6A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '6A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n7a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '7A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '7A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n8a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '8A' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '8A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def n9p(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '9P' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '9P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def non_std(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
       WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = 'Unknown' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = 'Unknown' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def tb_no_suspect(start_date=Time.now, end_date=Time.now, section=nil)
@@ -1073,43 +1077,43 @@ class CohortController < ActionController::Base
   end
 
   def tb_suspected(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     render :text => value
   end
 
   def tb_confirm_not_treat(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     render :text => value
   end
 
   def tb_confirmed(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     render :text => value
   end
 
   def unknown_tb(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     render :text => value
   end
 
   def side_effects(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     render :text => value
   end
 
   def missed_0_6(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     render :text => value
   end
 
   def missed_7plus(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     render :text => value
   end
