@@ -51,7 +51,7 @@ class CohortController < ActionController::Base
   # Start Cohort queries
 
   def new_total_reg(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -59,28 +59,28 @@ class CohortController < ActionController::Base
     patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")                  
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
     
-    value = patients.length unless patients.blank?
-    render :text => value 
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_total_reg(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
     patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")                  
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value 
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
     
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -99,7 +99,7 @@ class CohortController < ActionController::Base
   end
 
   def cum_ft(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')        
     
@@ -116,7 +116,7 @@ class CohortController < ActionController::Base
   end
 
   def new_re(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
     
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -154,7 +154,7 @@ class CohortController < ActionController::Base
   end
 
   def new_ti(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
     
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -175,7 +175,7 @@ class CohortController < ActionController::Base
   end
 
   def cum_ti(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
     
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
@@ -194,7 +194,7 @@ class CohortController < ActionController::Base
   end
 
   def new_males(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -205,14 +205,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t.gender = 'M'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_males(start_date=Time.now, end_date=Time.now, section=nil)
-     value = 0
+     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -221,14 +221,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t.gender = 'M'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value 
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_non_preg(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -240,14 +240,14 @@ class CohortController < ActionController::Base
       AND t1.pregnant_no IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_non_preg(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -258,14 +258,14 @@ class CohortController < ActionController::Base
       AND t1.pregnant_no IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_preg_all_age(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -277,14 +277,14 @@ class CohortController < ActionController::Base
       AND t1.pregnant_yes IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_preg_all_age(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -295,14 +295,14 @@ class CohortController < ActionController::Base
       AND t1.pregnant_yes IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -313,15 +313,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 0 AND 23")                  
-    
-    value = patients.length unless patients.blank?
-    
-    render :text => value
+      HAVING months BETWEEN 0 AND 23").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_a(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -331,15 +330,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 0 AND 23")                  
-    
-    value = patients.length unless patients.blank?
-    
-    render :text => value
+      HAVING months BETWEEN 0 AND 23").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_b(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -350,15 +348,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 24 AND 168")                  
-    
-    value = patients.length unless patients.blank?
-    
-    render :text => value
+      HAVING months BETWEEN 24 AND 168").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_b(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -368,15 +365,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 24 AND 168")                  
-    
-    value = patients.length unless patients.blank?
-    
-    render :text => value
+      HAVING months BETWEEN 24 AND 168").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_c(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -387,15 +383,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months > 168")                  
-    
-    value = patients.length unless patients.blank?
-    
-    render :text => value
+      HAVING months > 168").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_c(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -405,11 +400,10 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months > 168")                  
-    
-    value = patients.length unless patients.blank?
-    
-    render :text => value
+      HAVING months > 168").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_unk_age(start_date=Time.now, end_date=Time.now, section=nil)
@@ -425,149 +419,399 @@ class CohortController < ActionController::Base
   end
 
   def new_pres_hiv(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                            
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS reason
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL 
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' 
-      AND reason_for_eligibility = 'Presumed severe HIV criteria in infants'
-      GROUP BY t1.patient_id LIMIT 1")                  
-    
-    value = patients[0].reason.to_i unless patients.blank?
-    render :text => value 
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility LIKE '%Presumed%'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_pres_hiv(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t1.patient_id) AS reason
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL 
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
-      AND reason_for_eligibility = 'Presumed severe HIV criteria in infants'
-      GROUP BY t1.patient_id LIMIT 1")                  
-    
-    value = patients[0].reason.to_i unless patients.blank?
-    render :text => value 
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS reason
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND reason_for_eligibility LIKE '%Presumed%'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}' 
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_conf_hiv(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'HIV infected'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_conf_hiv(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'HIV infected'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_who_1_2(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility LIKE '%CD4%'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_who_1_2(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility LIKE '%CD4%'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_who_2(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Lymphocyte count below threshold with who stage 2'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_who_2(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Lymphocyte count below threshold with who stage 2'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_children(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND (t.reason_for_eligibility = 'WHO stage III peds' OR
+           t.reason_for_eligibility = 'WHO stage IV peds')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_children(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND (t.reason_for_eligibility = 'WHO stage III peds' OR
+           t.reason_for_eligibility = 'WHO stage IV peds')
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_breastfeed(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Currently breastfeeding child'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_breastfeed(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Currently breastfeeding child'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_preg(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Patient pregnant'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_preg(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
+    
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    render :text => value
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Patient pregnant'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_who_3(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage III adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_who_3(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
+    
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    render :text => value
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage III adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_who_4(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage IV adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_who_4(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'WHO stage IV adult'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_other_reason(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Unknown'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_other_reason(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
+    
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    render :text => value
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL
+      AND t.reason_for_eligibility = 'Unknown'
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}'
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -579,14 +823,14 @@ class CohortController < ActionController::Base
       OR t.extrapulmonary_tuberculosis = 'No')
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -597,14 +841,14 @@ class CohortController < ActionController::Base
       OR t.extrapulmonary_tuberculosis = 'No')
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_tb_w2yrs(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -616,14 +860,14 @@ class CohortController < ActionController::Base
       AND t.pulmonary_tuberculosis_last_2_years = 'Yes'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value 
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_tb_w2yrs(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -634,14 +878,14 @@ class CohortController < ActionController::Base
       AND t.pulmonary_tuberculosis_last_2_years = 'Yes'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -653,14 +897,14 @@ class CohortController < ActionController::Base
       OR t.extrapulmonary_tuberculosis = 'Yes')
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -671,14 +915,14 @@ class CohortController < ActionController::Base
       OR t.extrapulmonary_tuberculosis = 'Yes')
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_ks(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -690,14 +934,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t.kaposis_sarcoma = 'Yes'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_ks(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -707,14 +951,14 @@ class CohortController < ActionController::Base
       WHERE t1.regimen_category IS NOT NULL AND t.kaposis_sarcoma = 'Yes'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def total_on_art(start_date=Time.now, end_date=Time.now, section=nil)
-     value = 0
+     value = []
 
      end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -723,14 +967,14 @@ class CohortController < ActionController::Base
       AND t1.current_hiv_program_state = 'On antiretrovirals'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
-    
-    value = patients.length unless patients.blank?
-    render :text => value
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def died_1st_month(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -749,10 +993,10 @@ class CohortController < ActionController::Base
   end
 
   def died_2nd_month(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
-    
+
     patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id FROM flat_table2 ft2
       LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
         WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
@@ -768,7 +1012,7 @@ class CohortController < ActionController::Base
   end
 
   def died_3rd_month(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -787,7 +1031,7 @@ class CohortController < ActionController::Base
   end
 
   def died_after_3rd_month(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -806,7 +1050,7 @@ class CohortController < ActionController::Base
   end
 
   def died_total(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -829,7 +1073,7 @@ class CohortController < ActionController::Base
 
 
   def stopped(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
@@ -845,7 +1089,7 @@ class CohortController < ActionController::Base
   end
 
   def transfered(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
