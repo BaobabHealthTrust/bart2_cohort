@@ -705,11 +705,12 @@ class CohortController < ActionController::Base
 
   def total_on_art(start_date=Time.now, end_date=Time.now, section=nil)
      patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
-      WHERE t1.regimen_category IS NOT NULL AND t1.current_hiv_program_state = 'On antiretrovirals'
+      WHERE t1.regimen_category IS NOT NULL
+      AND t1.current_hiv_program_state = 'On antiretrovirals'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id")
-
+    
     value = patients.length unless patients.blank?
     render :text => value
   end
