@@ -296,16 +296,16 @@ class CohortController < ActionController::Base
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
-    
-    patients = FlatTable2.find_by_sql("SELECT count(t3.patient_id) AS new_total_reg,
+
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
       age_in_months(t3.dob,'#{end_date.to_date}') AS months
       FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
+      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 0 AND 23 LIMIT 1")                  
+      HAVING months BETWEEN 0 AND 23")                  
     
-    value = patients[0].new_total_reg.to_i unless patients.blank?
+    value = patients.length unless patients.blank?
     
     render :text => value
   end
@@ -315,14 +315,15 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t3.patient_id) AS new_total_reg,
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
       age_in_months(t3.dob,'#{end_date.to_date}') AS months
       FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
-      GROUP BY t1.patient_id HAVING months BETWEEN 0 AND 23 LIMIT 1")                  
+      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
+      HAVING months BETWEEN 0 AND 23")                  
     
-    value = patients[0].new_total_reg.to_i unless patients.blank?
+    value = patients.length unless patients.blank?
     
     render :text => value
   end
@@ -333,15 +334,15 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t3.patient_id) AS new_total_reg,
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
       age_in_months(t3.dob,'#{end_date.to_date}') AS months
       FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
+      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 24 AND 168 LIMIT 1")                  
+      HAVING months BETWEEN 24 AND 168")                  
     
-    value = patients[0].new_total_reg.to_i unless patients.blank?
+    value = patients.length unless patients.blank?
     
     render :text => value
   end
@@ -351,14 +352,15 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t3.patient_id) AS new_total_reg,
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
       age_in_months(t3.dob,'#{end_date.to_date}') AS months
       FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
-      GROUP BY t1.patient_id HAVING months BETWEEN 24 AND 168 LIMIT 1")                  
+      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
+      HAVING months BETWEEN 24 AND 168")                  
     
-    value = patients[0].new_total_reg.to_i unless patients.blank?
+    value = patients.length unless patients.blank?
     
     render :text => value
   end
@@ -369,15 +371,15 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t3.patient_id) AS new_total_reg,
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
       age_in_months(t3.dob,'#{end_date.to_date}') AS months
       FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
+      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months > 168 LIMIT 1")                  
+      HAVING months > 168")                  
     
-    value = patients[0].new_total_reg.to_i unless patients.blank?
+    value = patients.length unless patients.blank?
     
     render :text => value
   end
@@ -387,14 +389,15 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT count(t3.patient_id) AS new_total_reg,
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
       age_in_months(t3.dob,'#{end_date.to_date}') AS months
       FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
-      GROUP BY t1.patient_id HAVING months > 168 LIMIT 1")                  
+      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
+      HAVING months > 168")                  
     
-    value = patients[0].new_total_reg.to_i unless patients.blank?
+    value = patients.length unless patients.blank?
     
     render :text => value
   end
