@@ -85,17 +85,17 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id 
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id 
       WHERE t1.regimen_category IS NOT NULL 
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
                            WHERE t2.patient_id = t1.patient_id) 
       AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' 
-      AND ft1.ever_registered_at_art_clinic = 'No' GROUP BY t1.patient_id")
-    
-    value = patients.length unless patients.blank?
-    render :text => value
+      AND ft1.ever_registered_at_art_clinic = 'No' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_ft(start_date=Time.now, end_date=Time.now, section=nil)
@@ -103,16 +103,16 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')        
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS new_total_reg
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
                            WHERE t2.patient_id = t1.patient_id) 
       AND t1.visit_date <= '#{end_date}' 
-      AND ft1.ever_registered_at_art_clinic = 'No' GROUP BY t1.patient_id")
+      AND ft1.ever_registered_at_art_clinic = 'No' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_re(start_date=Time.now, end_date=Time.now, section=nil)
@@ -121,7 +121,7 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id 
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id 
       WHERE t1.regimen_category IS NOT NULL 
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
@@ -129,10 +129,10 @@ class CohortController < ActionController::Base
       AND t1.visit_date >= '#{start_date}' 
       AND t1.visit_date <= '#{end_date}' 
       AND (DATEDIFF(ft1.date_created,ft1.date_art_last_taken) > 60)
-      GROUP BY t1.patient_id")    
-    
-    value = patients.length unless patients.blank?
-    render :text => value
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_re(start_date=Time.now, end_date=Time.now, section=nil)
@@ -140,17 +140,17 @@ class CohortController < ActionController::Base
     
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
                            WHERE t2.patient_id = t1.patient_id)
       AND t1.visit_date <= '#{end_date}' 
       AND (DATEDIFF(date_created,ft1.date_art_last_taken) > 60)
-      GROUP BY t1.patient_id")    
-    
-    value = patients.length unless patients.blank?
-    render :text => value
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_ti(start_date=Time.now, end_date=Time.now, section=nil)
@@ -159,7 +159,7 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id 
       WHERE t1.regimen_category IS NOT NULL 
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
@@ -168,10 +168,10 @@ class CohortController < ActionController::Base
       AND t1.visit_date <= '#{end_date}' 
       AND ft1.ever_registered_at_art_clinic = 'Yes'
       AND (DATEDIFF(date_created,ft1.date_art_last_taken) > 60) OR (ft1.taken_art_in_last_two_months = 'No')
-      GROUP BY t1.patient_id")
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_ti(start_date=Time.now, end_date=Time.now, section=nil)
@@ -179,7 +179,7 @@ class CohortController < ActionController::Base
     
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
       FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
@@ -187,10 +187,10 @@ class CohortController < ActionController::Base
       AND t1.visit_date <= '#{end_date}' 
       AND ft1.ever_registered_at_art_clinic = 'Yes'
       AND (DATEDIFF(date_created,ft1.date_art_last_taken) > 60) OR (ft1.taken_art_in_last_two_months = 'No')
-      GROUP BY t1.patient_id")
-    
-    value = patients.length unless patients.blank?
-    render :text => value
+      GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_males(start_date=Time.now, end_date=Time.now, section=nil)
@@ -734,18 +734,18 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
-        WHERE t1.regimen_category IS NOT NULL 
-        AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-                             WHERE t2.patient_id = t1.patient_id) 
-        AND t1.visit_date <= '#{end_date}' 
-        AND t1.current_hiv_program_state = 'Patient died'
-        AND DATEDIFF(current_hiv_program_state_date,SELECT MIN(t2.visit_date) FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) BETWEEN 0 AND 30.4375
-        GROUP BY t1.patient_id")    
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id FROM flat_table2 ft2
+      LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
+        WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+        FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
+        AND t1.visit_date <= '2013-03-31' GROUP BY t1.patient_id) AS registration_date ON registration_date.patient_id = ft2.patient_id
+    WHERE registration_date.visit_date <= '#{end_date}'
+    AND ft2.current_hiv_program_state = 'Patient died'
+    AND DATEDIFF(ft2.current_hiv_program_start_date,registration_date.visit_date) BETWEEN 0 AND 30.4375
+    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def died_2nd_month(start_date=Time.now, end_date=Time.now, section=nil)
@@ -753,18 +753,18 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
-        WHERE t1.regimen_category IS NOT NULL 
-        AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-                             WHERE t2.patient_id = t1.patient_id) 
-        AND t1.visit_date <= '#{end_date}' 
-        AND t1.current_hiv_program_state = 'Patient died'
-        AND DATEDIFF(current_hiv_program_state_date,SELECT MIN(t2.visit_date) FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) BETWEEN 30.4375 AND 60.875
-        GROUP BY t1.patient_id")    
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id FROM flat_table2 ft2
+      LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
+        WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+        FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
+        AND t1.visit_date <= '2013-03-31' GROUP BY t1.patient_id) AS registration_date ON registration_date.patient_id = ft2.patient_id
+    WHERE registration_date.visit_date <= '#{end_date}'
+    AND ft2.current_hiv_program_state = 'Patient died'
+    AND DATEDIFF(ft2.current_hiv_program_start_date,registration_date.visit_date) BETWEEN 30.4375 AND 60.875
+    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def died_3rd_month(start_date=Time.now, end_date=Time.now, section=nil)
@@ -772,18 +772,18 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
-        WHERE t1.regimen_category IS NOT NULL 
-        AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-                             WHERE t2.patient_id = t1.patient_id) 
-        AND t1.visit_date <= '#{end_date}' 
-        AND t1.current_hiv_program_state = 'Patient died'
-        AND DATEDIFF(current_hiv_program_state_date,SELECT MIN(t2.visit_date) FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) BETWEEN 60.875 AND 91.3125
-        GROUP BY t1.patient_id")    
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id FROM flat_table2 ft2
+      LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
+        WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+        FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
+        AND t1.visit_date <= '2013-03-31' GROUP BY t1.patient_id) AS registration_date ON registration_date.patient_id = ft2.patient_id
+    WHERE registration_date.visit_date <= '#{end_date}'
+    AND ft2.current_hiv_program_state = 'Patient died'
+    AND DATEDIFF(ft2.current_hiv_program_start_date,registration_date.visit_date) BETWEEN 60.875 AND 91.3125
+    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def died_after_3rd_month(start_date=Time.now, end_date=Time.now, section=nil)
@@ -791,17 +791,18 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
-        WHERE t1.regimen_category IS NOT NULL 
-        AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-                             WHERE t2.patient_id = t1.patient_id) 
-        AND t1.visit_date <= '#{end_date}' 
-        AND t1.current_hiv_program_state = 'Patient died'
-        AND DATEDIFF(current_hiv_program_state_date,SELECT MIN(t2.visit_date) FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) BETWEEN 91.3125 AND 1000000
-        GROUP BY t1.patient_id")    
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id FROM flat_table2 ft2
+      LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
+        WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+        FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' 
+        AND t1.visit_date <= '2013-03-31' GROUP BY t1.patient_id) AS registration_date ON registration_date.patient_id = ft2.patient_id
+    WHERE registration_date.visit_date <= '#{end_date}'
+    AND ft2.current_hiv_program_state = 'Patient died'
+    AND DATEDIFF(ft2.current_hiv_program_start_date,registration_date.visit_date) BETWEEN 91.3125 AND 1000000
+    GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def died_total(start_date=Time.now, end_date=Time.now, section=nil)
@@ -809,35 +810,54 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
     
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
-        WHERE t1.regimen_category IS NOT NULL 
-        AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-                             WHERE t2.patient_id = t1.patient_id) 
-        AND t1.visit_date <= '#{end_date}' 
-        AND t1.current_hiv_program_state = 'Patient died'
-        GROUP BY t1.patient_id")    
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id FROM flat_table2 ft2
+      LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
+        WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+        FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id) AS registration_date ON registration_date.patient_id = ft2.patient_id
+    WHERE registration_date.visit_date <= '#{end_date}'
+    AND ft2.current_hiv_program_state = 'Patient died'").collect{|p| p.patient_id}
 
-    value = patients.length unless patients.blank?
-
-    render :text => value
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
-
+  
   def defaulted(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
     render :text => value
   end
 
+
   def stopped(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id from flat_table2 ft2
+      LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
+        WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+        FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id) AS registration_date ON registration_date.patient_id = ft2.patient_id
+    WHERE registration_date.visit_date <= '#{end_date}'
+    AND ft2.current_hiv_program_state = 'Treatment stopped'").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def transfered(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id from flat_table2 ft2
+      LEFT OUTER JOIN (SELECT t1.patient_id, visit_date FROM flat_table2 t1 
+        WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
+        FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id) AS registration_date ON registration_date.patient_id = ft2.patient_id
+    WHERE registration_date.visit_date <= '#{end_date}'
+    AND ft2.current_hiv_program_state = 'Patient transferred out'").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def unknown_outcome(start_date=Time.now, end_date=Time.now, section=nil)
