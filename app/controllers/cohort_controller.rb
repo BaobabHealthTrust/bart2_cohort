@@ -10,8 +10,17 @@ class CohortController < ActionController::Base
   def cohort    
   end
 
+  def mastercard    
+  end
+
   def drill_down
-    raise params.to_yaml
+    @patients = CohortPerson.find(:all, :conditions => ["person_id IN (?)",
+        params[:field].split(",")]).collect{|p|
+      [p.person_id, (p.names.first.given_name rescue "&nbsp;"),
+        (p.names.first.family_name rescue "&nbsp;"), (p.birthdate rescue "&nbsp;"), p.gender]
+    }
+
+    # raise @patients.inspect
   end
 
   def current_site
@@ -212,7 +221,7 @@ class CohortController < ActionController::Base
   end
 
   def cum_males(start_date=Time.now, end_date=Time.now, section=nil)
-     value = 0
+    value = 0
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
@@ -714,11 +723,11 @@ class CohortController < ActionController::Base
   end
 
   def total_on_art(start_date=Time.now, end_date=Time.now, section=nil)
-     value = 0
+    value = 0
 
-     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-     patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
+    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
       WHERE t1.regimen_category IS NOT NULL
       AND t1.current_hiv_program_state = 'On antiretrovirals'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)

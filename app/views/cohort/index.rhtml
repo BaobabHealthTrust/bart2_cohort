@@ -337,6 +337,20 @@
 
                 __$(element).appendChild(frm);
 
+                var startdate = document.createElement("input");
+                startdate.name = "start_date";
+                startdate.type = "hidden";
+                startdate.value = "<%= params[:start_date] %>"
+
+                frm.appendChild(startdate);
+
+                var enddate = document.createElement("input");
+                enddate.name = "end_date";
+                enddate.type = "hidden";
+                enddate.value = "<%= params[:end_date] %>"
+
+                frm.appendChild(enddate);
+
                 var textarea = document.createElement("textarea");
                 textarea.name = "field";
                 textarea.style.display = "none";
@@ -344,8 +358,10 @@
                 textarea.style.margin = "0px";
 
                 for(var j = 0; j < json.length; j++){
-                  textarea.innerHTML += json[j] + ";"
+                  textarea.innerHTML += json[j] + ","
                 }
+
+                textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
 
                 frm.appendChild(textarea);
 
