@@ -434,7 +434,7 @@ class CohortController < ActionController::Base
       FROM flat_table2 t1 INNER JOIN flat_table1 t
       ON t.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Presumed severe HIV criteria in infants'
+      AND t.reason_for_eligibility LIKE '%Presumed%'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
       AND t1.visit_date <= '#{end_date}'
@@ -453,7 +453,7 @@ class CohortController < ActionController::Base
       FROM flat_table2 t1 INNER JOIN flat_table1 t
       ON t.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL
-      AND reason_for_eligibility = 'Presumed severe HIV criteria in infants'
+      AND reason_for_eligibility LIKE '%Presumed%'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
       AND t1.visit_date <= '#{end_date}' 
@@ -533,9 +533,7 @@ class CohortController < ActionController::Base
       FROM flat_table2 t1 INNER JOIN flat_table1 t
       ON t.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL
-      AND (t.reason_for_eligibility = 'CD4 count less than or equal to 350' OR
-           t.reason_for_eligibility = 'CD4 count less than 750' OR
-           t.reason_for_eligibility = 'CD4 count less than or equal to 750')
+      AND t.reason_for_eligibility LIKE '%CD4%'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
       AND t1.visit_date <= '#{end_date}'
