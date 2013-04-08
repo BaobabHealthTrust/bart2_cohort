@@ -1114,8 +1114,16 @@ class CohortController < ActionController::Base
 
   def unknown_outcome(start_date=Time.now, end_date=Time.now, section=nil)
     value = 0
+    #to be polished
+    @total_registered = self.art_defaulted_patients(start_date,end_date)
+		@patients_alive_and_on_art = self.total_alive_and_on_art(start_date,end_date)
+		@dafaulted = self.art_defaulted_patients(start_date,end_date)
+		@died_total = self.total_alive_and_on_art(start_date,end_date)
+		@stopped_taking_arvs = self.total_alive_and_on_art(start_date,end_date)
+		@tranferred_out = self.art_defaulted_patients(start_date,end_date)
 
-    render :text => value
+    value = @patients_alive_and_on_art - (@total_registered + @dafaulted + @died_total + @stopped_taking_arvs + @tranferred_out )
+    render :text => value.to_json
   end
 
   def n1a(start_date=Time.now, end_date=Time.now, section=nil)
@@ -1375,19 +1383,72 @@ class CohortController < ActionController::Base
   def side_effects(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id FROM flat_table2 ft2
+      WHERE (ft2.drug_induced_peripheral_neuropathy = 'Peripheral neuropathy'
+        OR ft2.drug_induced_leg_pain_numbness = 'Leg pain / numbness'
+        OR ft2.drug_induced_hepatitis = 'Hepatitis' OR ft2.drug_induced_skin_rash = 'Skin rash'
+        OR ft2.drug_induced_jaundice = 'Jaundice')
+      AND ft2.patient_id IN ( SELECT t1.patient_id FROM flat_table2 t1
+                              WHERE t1.regimen_category IS NOT NULL
+                              AND t1.current_hiv_program_state = 'On antiretrovirals'
+                              AND t1.visit_date = ( SELECT MIN(t2.visit_date)
+                                                    FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+                              AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id)
+     AND ft2.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t3 WHERE t3.patient_id =ft2.patient_id)
+     AND ft2.visit_date <= '{#end_date}'
+     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def missed_0_6(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id FROM flat_table2 ft2
+WHERE ((what_was_the_patient_adherence_for_this_drug1 BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug2 BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug3 BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug4 BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug5 BETWEEN 95 AND 105))
+      AND ft2.patient_id IN ( SELECT t1.patient_id FROM flat_table2 t1
+                              WHERE t1.regimen_category IS NOT NULL
+                              AND t1.current_hiv_program_state = 'On antiretrovirals'
+                              AND t1.visit_date = ( SELECT MIN(t2.visit_date)
+                                                    FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+                              AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id)
+     AND ft2.visit_date = (SELECT MIN(ft2.visit_date) FROM flat_table2 t3 WHERE t3.patient_id =ft2.patient_id)
+     AND ft2.visit_date <= '{#end_date}'
+     GROUP BY ft2.patient_id")
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def missed_7plus(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id FROM flat_table2 ft2
+WHERE ((what_was_the_patient_adherence_for_this_drug1 NOT BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug2 NOT BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug3 NOT BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug4 NOT BETWEEN 95 AND 105) OR
+	    (what_was_the_patient_adherence_for_this_drug5 NOT BETWEEN 95 AND 105))
+      AND ft2.patient_id IN ( SELECT t1.patient_id FROM flat_table2 t1
+                              WHERE t1.regimen_category IS NOT NULL
+                              AND t1.current_hiv_program_state = 'On antiretrovirals'
+                              AND t1.visit_date = ( SELECT MIN(t2.visit_date)
+                                                    FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+                              AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id)
+     AND ft2.visit_date = (SELECT MIN(ft2.visit_date) FROM flat_table2 t3 WHERE t3.patient_id =ft2.patient_id)
+     AND ft2.visit_date <= '{#end_date}'
+     GROUP BY ft2.patient_id")
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   # End cohort queries
