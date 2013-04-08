@@ -241,15 +241,27 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
-      INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
+    all_women = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
+      INNER JOIN flat_table1 t ON t.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_no IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
+    pregnant_women = patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
+      AND t1.pregnant_yes = 'Yes'
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    
+    patients = all_women - pregnant_women
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -259,15 +271,27 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
-      INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
+    all_women = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
+      INNER JOIN flat_table1 t ON t.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_no IS NOT NULL
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
+    pregnant_women = patients = FlatTable2.find_by_sql("SELECT t1.patient_id
+      FROM flat_table2 t1 INNER JOIN flat_table1 t
+      ON t.patient_id = t1.patient_id
+      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
+      AND t1.pregnant_yes = 'Yes'
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
+      AND t1.visit_date = (SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+
+    patients = all_women - pregnant_women
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -282,7 +306,11 @@ class CohortController < ActionController::Base
       FROM flat_table2 t1 INNER JOIN flat_table1 t
       ON t.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_yes IS NOT NULL
+      AND t1.pregnant_yes = 'Yes'
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
@@ -300,7 +328,11 @@ class CohortController < ActionController::Base
       FROM flat_table2 t1 INNER JOIN flat_table1 t
       ON t.patient_id = t1.patient_id
       WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_yes IS NOT NULL
+      AND t1.pregnant_yes = 'Yes'
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
+      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
+      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
       AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
