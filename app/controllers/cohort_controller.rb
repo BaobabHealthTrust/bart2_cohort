@@ -1132,11 +1132,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '1A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date), 
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '1A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1148,11 +1149,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '1P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '1P' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1164,11 +1166,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '2A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '2A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1180,11 +1183,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '2P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '2P' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1196,11 +1200,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '3A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '3A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1212,11 +1217,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '3P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '3P' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1228,11 +1234,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '4A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '4A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1244,11 +1251,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '4P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '4P' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1260,11 +1268,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '5A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '5A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1276,11 +1285,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '6A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '6A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1292,11 +1302,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '7A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '7A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1308,11 +1319,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '8A' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '8A' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1324,11 +1336,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = '9P' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = '9P' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1340,11 +1353,12 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-      WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' AND t1.regimen_category = 'Unknown' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+    patients = FlatTable2.find_by_sql("SELECT DISTINCT patient_id, MAX(visit_date),
+      regimen_category FROM flat_table2 WHERE regimen_category IS NOT NULL AND
+      visit_date >= '#{start_date}' AND visit_date <= '#{end_date}' AND
+      regimen_category = 'Unknown' GROUP BY patient_id ORDER BY patient_id").collect{|p|
+      p.patient_id
+    }
 
     value = patients unless patients.blank?
     render :text => value.to_json
