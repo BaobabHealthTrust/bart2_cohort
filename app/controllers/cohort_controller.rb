@@ -289,9 +289,9 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.gender = 'F'
-                                            AND ftc.patient_pregnant = 'Yes'
-                                            AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) <= 30
-                                            AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) > -1
+                                            AND ftc.pregnant_yes = 'Yes'
+                                            AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) <= 30
+                                            AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) > -1
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
 =begin
@@ -353,9 +353,9 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     pregnant_women = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                                     WHERE ftc.earliest_start_date <= '#{end_date}'
                                                     AND ftc.gender = 'F'
-                                                    AND ftc.patient_pregnant = 'Yes'
-                                                    AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) <= 30
-                                                    AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) > -1
+                                                    AND ftc.pregnant_yes = 'Yes'
+                                                    AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) <= 30
+                                                    AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) > -1
                                                     GROUP BY ftc.patient_id").collect{|p| p.patient_id}    
     
     patients = all_women - pregnant_women
@@ -373,9 +373,9 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                                     WHERE ftc.earliest_start_date >= '#{start_date}'
                                                     AND ftc.earliest_start_date <= '#{end_date}'
                                                     AND ftc.gender = 'F'
-                                                    AND ftc.patient_pregnant = 'Yes'
-                                                    AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) <= 30
-                                                    AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) > -1
+                                                    AND ftc.pregnant_yes = 'Yes'
+                                                    AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) <= 30
+                                                    AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) > -1
                                                     GROUP BY ftc.patient_id").collect{|p| p.patient_id}    
     
 =begin
@@ -417,9 +417,9 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                                   WHERE ftc.earliest_start_date <= '#{end_date}'
                                                   AND ftc.gender = 'F'
-                                                  AND ftc.patient_pregnant = 'Yes'
-                                                  AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) <= 30
-                                                  AND DATEDIFF(ftc.patient_pregnant_v_date,ftc.earliest_start_date) > -1
+                                                  AND ftc.pregnant_yes = 'Yes'
+                                                  AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) <= 30
+                                                  AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) > -1
                                                   GROUP BY ftc.patient_id").collect{|p| p.patient_id}    
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1220,12 +1220,23 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+    defaulted_patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, ftc.hiv_program_state, ftc.drug_auto_expire_date1, ftc.drug_auto_expire_date2, ftc.drug_auto_expire_date3, ftc.drug_auto_expire_date4, ftc.drug_auto_expire_date5
+                              FROM flat_cohort_table ftc
+                              WHERE ftc.hiv_program_state NOT IN ('Patient died','Treatment stopped','Patient transferred out')
+                              AND ftc.earliest_start_date <= '#{end_date}'
+                              AND (DATEDIFF('#{end_date}', ftc.drug_auto_expire_date1) > 56 OR 
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date2) > 56 OR
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date3) > 56 OR
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date4) > 56 OR
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date5) > 56 ) 
+                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+
     patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
       WHERE t1.regimen_category IS NOT NULL
       AND t1.current_hiv_program_state = 'On antiretrovirals'
       AND t1.visit_date = (SELECT MIN(t2.visit_date)
       FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
+      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").reject{|t| defaulted_patients.include?(t.patient_id) }
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1306,12 +1317,24 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
   end
   
   def defaulted(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    
-    render :text => value
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, ftc.hiv_program_state, ftc.drug_auto_expire_date1, ftc.drug_auto_expire_date2, ftc.drug_auto_expire_date3, ftc.drug_auto_expire_date4, ftc.drug_auto_expire_date5
+                              FROM flat_cohort_table ftc
+                              WHERE ftc.hiv_program_state NOT IN ('Patient died','Treatment stopped','Patient transferred out')
+                              AND ftc.earliest_start_date <= '#{end_date}'
+                              AND (DATEDIFF('#{end_date}', ftc.drug_auto_expire_date1) > 56 OR 
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date2) > 56 OR
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date3) > 56 OR
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date4) > 56 OR
+                                   DATEDIFF('#{end_date}', ftc.drug_auto_expire_date5) > 56 ) 
+                              GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
-
 
   def stopped(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
@@ -1371,8 +1394,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     }
 =end
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '1A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
@@ -1393,8 +1415,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     }
 =end
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '1P'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
@@ -1415,8 +1436,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     }
 =end
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '2A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
@@ -1437,8 +1457,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     }
 =end
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '2P'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
@@ -1459,8 +1478,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     }
 =end
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '3A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
@@ -1474,8 +1492,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '3P'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 =begin
@@ -1497,8 +1514,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '4A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 =begin
@@ -1520,8 +1536,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '4P'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 =begin
@@ -1543,8 +1558,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '5A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 =begin
@@ -1566,8 +1580,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '6A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 =begin
@@ -1589,8 +1602,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '7A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -1620,8 +1632,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     }
 =end
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '8A'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -1636,8 +1647,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = '9P'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -1660,8 +1670,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.regimen_category = 'Unknown'
                                             GROUP BY ftc.patient_id ORDER BY ftc.patient_id").collect{|p| p.patient_id}
 
