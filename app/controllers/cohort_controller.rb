@@ -4,13 +4,13 @@ class CohortController < ActionController::Base
   def index
   end
 
-  def select_date    
+  def select_date
   end
 
   def cohort    
   end
 
-  def mastercard    
+  def mastercard
   end
 
   def drill_down
@@ -58,57 +58,80 @@ class CohortController < ActionController::Base
   end
 
   # Start Cohort queries
-
-  def new_total_reg(start_date=Time.now, end_date=Time.now, section=nil)
+  def new_total_patients_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')  
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end    
+
+    value = patients unless patients.blank?
+  end
+
+  def cum_total_patients_reg(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')        
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
+                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+  end
+
+  def new_total_reg(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+    patients = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    value = []
+
+    @total_patients_reg = new_total_patients_reg(start_date,end_date)
+    @total_patients_reg = [] if @total_patients_reg.blank?
+
+    @total_patients_reg.each do |patient|
+      patients << patient
+    end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
   def cum_total_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
+    patients =  []
 
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
-    
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1 
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+    @total_patients_reg = cum_total_patients_reg
+    @total_patients_reg = [] if @total_patients_reg.blank?
+
+    @total_patients_reg.each do |patient|  
+      patients << patient
+    end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
-def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
+  def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-   
+
     patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id
-      FROM flat_table2 ft2 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ft2.patient_id 
+      FROM flat_table2 ft2 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ft2.patient_id
       WHERE ft2.regimen_category IS NOT NULL AND ft2.current_hiv_program_state = 'On antiretrovirals'
-      AND ft1.earliest_start_date >= '#{start_date}' 
-      AND ft1.earliest_start_date <= '#{end_date}' 
+      AND ft1.earliest_start_date >= '#{start_date}'
+      AND ft1.earliest_start_date <= '#{end_date}'
       AND ft1.date_started_art IS NULL GROUP BY ft1.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -118,12 +141,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
   def cum_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')        
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')     
     
     patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id
-      FROM flat_table2 ft2 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ft2.patient_id 
+      FROM flat_table2 ft2 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ft2.patient_id
       WHERE ft2.regimen_category IS NOT NULL AND ft2.current_hiv_program_state = 'On antiretrovirals'
-      AND ft1.earliest_start_date <= '#{end_date}' 
+      AND ft1.earliest_start_date <= '#{end_date}'
       AND ft1.date_started_art IS NULL GROUP BY ft1.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -132,22 +155,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
 
   def new_re(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id 
-      WHERE t1.regimen_category IS NOT NULL 
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-                           WHERE t2.patient_id = t1.patient_id) 
-      AND t1.visit_date >= '#{start_date}' 
-      AND t1.visit_date <= '#{end_date}' 
-      AND (ft1.taken_art_in_last_two_months = 'No' OR DATEDIFF(ft1.date_created,ft1.date_art_last_taken) > 60)
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND (ftc.taken_art_in_last_two_months = 'No' OR DATEDIFF(ftc.date_art_last_taken_v_date,ftc.date_art_last_taken) > 60)
@@ -157,19 +169,10 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
   end
 
   def cum_re(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
-    
+    value = []
+
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-                           WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' 
-      AND (ft1.taken_art_in_last_two_months = 'No' OR DATEDIFF(ft1.date_created,ft1.date_art_last_taken) > 60)
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND (ftc.taken_art_in_last_two_months = 'No' OR DATEDIFF(ftc.date_art_last_taken_v_date,ftc.date_art_last_taken) > 60)
@@ -181,20 +184,9 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
   def new_ti(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
     
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id 
-      WHERE t1.regimen_category IS NOT NULL 
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2 
-                           WHERE t2.patient_id = t1.patient_id) 
-      AND t1.visit_date >= '#{start_date}' 
-      AND t1.visit_date <= '#{end_date}' 
-      AND ft1.ever_registered_at_art_clinic = 'Yes'
-      AND (DATEDIFF(date_created,ft1.date_art_last_taken) < 60) OR (ft1.taken_art_in_last_two_months = 'No')
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
@@ -208,19 +200,9 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
 
   def cum_ti(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    
+
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-=begin   
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS patient_id
-      FROM flat_table2 t1 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t1.visit_date = (SELECT MIN(t2.visit_date) FROM flat_table2 t2
-                           WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' 
-      AND ft1.ever_registered_at_art_clinic = 'Yes'
-      AND (DATEDIFF(date_created,ft1.date_art_last_taken) < 60) OR (ft1.taken_art_in_last_two_months = 'No')
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.ever_registered_at_art = 'Yes'
@@ -242,14 +224,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.gender = 'M'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
-      INNER JOIN flat_table1 t ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'M'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -257,14 +232,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
   def cum_males(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
-      INNER JOIN flat_table1 t ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'M'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.gender = 'M'
@@ -293,28 +261,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) <= 30
                                             AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) > -1
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-
-=begin
-    all_women = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
-      INNER JOIN flat_table1 t ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-
-    pregnant_women = patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_yes = 'Yes'
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end    
+   
     patients = all_women - pregnant_women
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -324,27 +271,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-=begin
-    all_women = FlatTable2.find_by_sql("SELECT t1.patient_id FROM flat_table2 t1
-      INNER JOIN flat_table1 t ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
 
-    pregnant_women = patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_yes = 'Yes'
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
     all_women = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               WHERE ftc.earliest_start_date <= '#{end_date}'
                                               AND ftc.gender = 'F'
@@ -377,21 +304,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                                     AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) <= 30
                                                     AND DATEDIFF(ftc.pregnant_yes_v_date,ftc.earliest_start_date) > -1
                                                     GROUP BY ftc.patient_id").collect{|p| p.patient_id}    
-    
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_yes = 'Yes'
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -400,20 +313,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t.gender = 'F'
-      AND t1.pregnant_yes = 'Yes'
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) <= 30
-      AND DATEDIFF(date_created,(SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)) > -1
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                                   WHERE ftc.earliest_start_date <= '#{end_date}'
                                                   AND ftc.gender = 'F'
@@ -425,7 +325,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     render :text => value.to_json
   end
 
-  def new_a(start_date=Time.now, end_date=Time.now, section=nil)
+  def new_infants_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
@@ -437,20 +337,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                              AND ftc.earliest_start_date <= '#{end_date}'
                                              GROUP BY ftc.patient_id
                                              HAVING months BETWEEN 0 AND 23").collect{|p| p.patient_id}    
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
-      age_in_months(t3.dob,'#{end_date.to_date}') AS months
-      FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 0 AND 23").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
-    render :text => value.to_json
   end
 
-  def cum_a(start_date=Time.now, end_date=Time.now, section=nil)
+  def cum_infants_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -460,24 +351,38 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                              WHERE ftc.earliest_start_date <= '#{end_date}'
                                              GROUP BY ftc.patient_id
                                              HAVING months BETWEEN 0 AND 23").collect{|p| p.patient_id}
-=begin    
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
-      age_in_months(t3.dob,'#{end_date.to_date}') AS months
-      FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 0 AND 23").collect{|p| p.patient_id}
-=end
+
+    value = patients unless patients.blank?
+  end
+
+  def new_a(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = new_infants_reg(start_date,end_date) 
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
-  def new_b(start_date=Time.now, end_date=Time.now, section=nil)
+  def cum_a(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = cum_infants_reg
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
+  end
+
+  def new_children_reg(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, age_in_months(ftc.birthdate, '#{end_date.to_date}') AS months
                                              FROM flat_cohort_table ftc 
@@ -486,15 +391,33 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                              GROUP BY ftc.patient_id
                                              HAVING months BETWEEN 24 AND 168").collect{|p| p.patient_id}   
 
-=begin    
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
-      age_in_months(t3.dob,'#{end_date.to_date}') AS months
-      FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 24 AND 168").collect{|p| p.patient_id}
-=end
+    value = patients unless patients.blank?
+  end
+
+  def cum_children_reg(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, age_in_months(ftc.birthdate, '#{end_date.to_date}') AS months
+                                             FROM flat_cohort_table ftc 
+                                             WHERE ftc.earliest_start_date <= '#{end_date}'
+                                             GROUP BY ftc.patient_id
+                                             HAVING months BETWEEN 24 AND 168").collect{|p| p.patient_id}   
+
+
+    value = patients unless patients.blank?
+  end
+
+
+  def new_b(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = new_children_reg(start_date,end_date) 
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -502,32 +425,19 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
   def cum_b(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, age_in_months(ftc.birthdate, '#{end_date.to_date}') AS months
-                                             FROM flat_cohort_table ftc 
-                                             WHERE ftc.earliest_start_date <= '#{end_date}'
-                                             GROUP BY ftc.patient_id
-                                             HAVING months BETWEEN 24 AND 168").collect{|p| p.patient_id}   
+    patients = cum_children_reg
 
-=begin    
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
-      age_in_months(t3.dob,'#{end_date.to_date}') AS months
-      FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months BETWEEN 24 AND 168").collect{|p| p.patient_id}
-=end
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
-  def new_c(start_date=Time.now, end_date=Time.now, section=nil)
+  def new_adults_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, age_in_months(ftc.birthdate, '#{end_date.to_date}') AS months
                                              FROM flat_cohort_table ftc 
@@ -536,23 +446,14 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                              GROUP BY ftc.patient_id
                                              HAVING months > 168").collect{|p| p.patient_id}   
 
-=begin    
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
-      age_in_months(t3.dob,'#{end_date.to_date}') AS months
-      FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}' 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months > 168").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
-    render :text => value.to_json
   end
 
-  def cum_c(start_date=Time.now, end_date=Time.now, section=nil)
+  def cum_adults_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, age_in_months(ftc.birthdate, '#{end_date.to_date}') AS months
                                              FROM flat_cohort_table ftc 
@@ -560,29 +461,64 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                              GROUP BY ftc.patient_id
                                              HAVING months > 168").collect{|p| p.patient_id}   
 
-=begin    
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id, 
-      age_in_months(t3.dob,'#{end_date.to_date}') AS months
-      FROM flat_table2 t1 INNER JOIN flat_table1 t3 ON t3.patient_id =  t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL AND t1.visit_date = (SELECT MIN(t2.visit_date) 
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) 
-      AND t1.visit_date <= '#{end_date}' GROUP BY t1.patient_id 
-      HAVING months > 168").collect{|p| p.patient_id}
-=end
+
+    value = patients unless patients.blank?
+  end
+
+  def new_c(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = new_adults_reg(start_date,end_date)
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
+  end
+
+  def cum_c(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = cum_adults_reg
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
   def new_unk_age(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
 
-    render :text => value
+    @newly_total_registered = new_total_patients_reg(start_date,end_date)
+    @newly_total_adults_registered = new_adults_reg(start_date,end_date)
+    @newly_total_children_registered = new_children_reg(start_date,end_date)
+    @newly_total_infants_registered = new_infants_reg(start_date,end_date)
+    
+    @newly_total_registered = [] if @newly_total_registered.blank?
+    @newly_total_adults_registered = [] if @newly_total_adults_registered.blank?
+    @newly_total_children_registered = [] if @newly_total_children_registered.blank?
+    @newly_total_infants_registered = [] if @newly_total_infants_registered.blank?
+    
+    patients = (@newly_total_registered - (@newly_total_adults_registered + @newly_total_children_registered + @newly_total_infants_registered))
+    
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def cum_unk_age(start_date=Time.now, end_date=Time.now, section=nil)
-    value = 0
+    value = []
+    
+    @cum_total_registered = cum_total_patients_reg || []
+    @cum_total_adults_registered = cum_adults_reg || []
+    @cum_total_children_registered = cum_children_reg || []
+    @cum_total_infants_registered = cum_infants_reg || []
 
-    render :text => value
+    patients = (@cum_total_registered - (@cum_total_adults_registered + @cum_total_children_registered + @cum_total_infants_registered))
+    
+    value = patients unless patients.blank?
+    render :text => value.to_json
   end
 
   def new_pres_hiv(start_date=Time.now, end_date=Time.now, section=nil)
@@ -596,17 +532,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting LIKE '%Presumed%'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility LIKE '%Presumed%'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -620,17 +546,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting LIKE '%Presumed%'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id AS reason
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND reason_for_eligibility LIKE '%Presumed%'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}' 
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -646,17 +562,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting = 'HIV infected'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'HIV infected'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -670,17 +576,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting = 'HIV infected'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'HIV infected'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -696,17 +592,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting LIKE '%CD4%'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility LIKE '%CD4%'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -720,17 +606,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting LIKE '%CD4%'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility LIKE '%CD4%'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -746,17 +622,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting = 'Lymphocyte count below threshold with who stage 2'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Lymphocyte count below threshold with who stage 2'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -770,17 +636,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting = 'Lymphocyte count below threshold with who stage 2'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Lymphocyte count below threshold with who stage 2'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -797,18 +653,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND (ftc.reason_for_starting = 'WHO stage III peds' OR
                                                  ftc.reason_for_starting = 'WHO stage IV peds')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND (t.reason_for_eligibility = 'WHO stage III peds' OR
-           t.reason_for_eligibility = 'WHO stage IV peds')
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -823,18 +668,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND (ftc.reason_for_starting = 'WHO stage III peds' OR
                                                  ftc.reason_for_starting = 'WHO stage IV peds')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND (t.reason_for_eligibility = 'WHO stage III peds' OR
-           t.reason_for_eligibility = 'WHO stage IV peds')
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -850,17 +684,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting  = 'Currently breastfeeding child'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Currently breastfeeding child'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -874,17 +698,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting  = 'Currently breastfeeding child'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Currently breastfeeding child'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -900,41 +714,21 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting  = 'Patient pregnant'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Patient pregnant'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
   def cum_preg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    
+
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting  = 'Patient pregnant'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Patient pregnant'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -951,17 +745,6 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.reason_for_starting  = 'WHO stage III adult'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'WHO stage III adult'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -975,17 +758,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting  = 'WHO stage III adult'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'WHO stage III adult'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -1001,17 +774,6 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting  = 'WHO stage IV adult'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'WHO stage IV adult'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -1025,17 +787,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting  = 'WHO stage IV adult'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'WHO stage IV adult'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -1051,17 +803,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting = 'Unknown'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Unknown'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id) AND t1.visit_date >= '#{start_date}'
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -1075,22 +817,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.reason_for_starting = 'Unknown'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-=begin
-    patients = FlatTable2.find_by_sql("SELECT t1.patient_id
-      FROM flat_table2 t1 INNER JOIN flat_table1 t
-      ON t.patient_id = t1.patient_id
-      WHERE t1.regimen_category IS NOT NULL
-      AND t.reason_for_eligibility = 'Unknown'
-      AND t1.visit_date = (SELECT MIN(t2.visit_date)
-      FROM flat_table2 t2 WHERE t2.patient_id = t1.patient_id)
-      AND t1.visit_date <= '#{end_date}'
-      GROUP BY t1.patient_id").collect{|p| p.patient_id}
-=end
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
-  def new_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
+  def new_total_tb_w2yrs(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
@@ -1099,24 +830,104 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date >= '#{start_date}' 
                                             AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND (ftc.pulmonary_tuberculosis = 'No'
-                                                OR ftc.extrapulmonary_tuberculosis = 'No')
+                                            AND ftc.pulmonary_tuberculosis_last_2_years = 'Yes'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
+
     value = patients unless patients.blank?
-    render :text => value.to_json
+    #render :text => value.to_json
   end
 
-  def cum_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
+  def cum_total_tb_w2yrs(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            AND (ftc.pulmonary_tuberculosis = 'No'
-                                                OR ftc.extrapulmonary_tuberculosis = 'No')
+                                            AND ftc.pulmonary_tuberculosis_last_2_years = 'Yes'
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    #render :text => value.to_json
+  end
+
+  def new_total_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
+                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
+                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            AND (ftc.pulmonary_tuberculosis = 'Yes' OR
+                                                 ftc.extrapulmonary_tuberculosis = 'Yes')
+                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    #render :text => value.to_json
+  end
+
+  def cum_total_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
+                                            WHERE ftc.earliest_start_date <= '#{end_date}'
+                                            AND (ftc.pulmonary_tuberculosis = 'Yes' OR
+                                                 ftc.extrapulmonary_tuberculosis = 'Yes')
+                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    #render :text => value.to_json
+  end
+
+  def new_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []; @new_total_patients_reg = []; @new_total_tb_w2yrs_pat_ids = []
+    @new_total_current_tb_pat_ids = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    @new_total_patients_reg = new_total_patients_reg(start_date,end_date)
+    @new_total_tb_w2yrs_pat_ids = new_total_tb_w2yrs(start_date,end_date)
+    @new_total_current_tb_pat_ids = new_total_current_tb(start_date,end_date)
+
+    @new_total_patients_reg = [] if @new_total_patients_reg.blank?
+    @new_total_tb_w2yrs_pat_ids = [] if @new_total_tb_w2yrs_pat_ids.blank?
+    @new_total_current_tb_pat_ids = [] if @new_total_tb_w2yrs_pat_ids.blank?
+
+    patients = (@new_total_patients_reg.to_a - (@new_total_tb_w2yrs_pat_ids.to_a + @new_total_current_tb_pat_ids.to_a))
+
+    value = patients unless patients.blank?
+    render :text => value.to_json
+  end
+
+  def cum_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []; @new_total_patients_reg = []; @new_total_tb_w2yrs_pat_ids = []
+    @new_total_current_tb_pat_ids = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    @new_total_patients_reg = cum_total_patients_reg
+    @new_total_tb_w2yrs_pat_ids = cum_total_tb_w2yrs
+    @new_total_current_tb_pat_ids = cum_total_current_tb
+
+    if !@new_total_patients_reg
+      @new_total_patients_reg = []
+    end
+
+    if !@new_total_tb_w2yrs_pat_ids
+      !@new_total_tb_w2yrs_pat_ids = []
+    end
+
+    if !@new_total_current_tb_pat_ids
+      @new_total_tb_w2yrs_pat_ids = []
+    end
+
+    patients = (@new_total_patients_reg.to_a - (@new_total_tb_w2yrs_pat_ids.to_a + @new_total_current_tb_pat_ids.to_a))
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1220,12 +1031,16 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    defaulted_patients = total_defaulted_patients.join(',')
+    @patients_defaulted ||= total_defaulted_patients
+		@patient_id_defaulted = @patients_defaulted
+		@patient_id_defaulted = [0] if @patient_id_defaulted .blank?
+	
+    @total_defaulted_patients = @patient_id_defaulted.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, ftc.hiv_program_state FROM flat_cohort_table ftc
                                             WHERE ftc.hiv_program_state = 'On antiretrovirals'
                                             AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND ftc.patient_id NOT IN (#{defaulted_patients})
+                                            AND ftc.patient_id NOT IN (#{@total_defaulted_patients})
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1235,9 +1050,10 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
     patients =  []
     
-    total_patients_alive_and_on_art.each do |patient|  
-      patients << patient
-    end
+    @patients_alive_and_on_art = total_patients_alive_and_on_art
+		@patients_alive_and_on_art = [] if @patients_alive_and_on_art.blank?
+    
+    patients = @patients_alive_and_on_art
     
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1303,7 +1119,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     render :text => value.to_json
   end
 
-  def died_total(start_date=Time.now, end_date=Time.now, section=nil)
+  def total_patients_died(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -1314,9 +1130,19 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
+  end
+
+  def died_total(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+
+    patients = total_patients_died
+
+    value = patients unless patients.blank?
     render :text => value.to_json
   end
-  
+
   def total_defaulted_patients(start_date=Time.now, end_date=Time.now, section=nil)
     #to be modified
     value = []
@@ -1342,7 +1168,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
     patients =  []
     
-    total_defaulted_patients(start_date, end_date).each do |patient|  
+    total_defaulted_patients.each do |patient|  
       patients << patient
     end
     
@@ -1350,7 +1176,7 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     render :text => value.to_json
   end
 
-  def stopped(start_date=Time.now, end_date=Time.now, section=nil)
+  def patients_stopped_treatment(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -1361,10 +1187,20 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
+  end
+  
+  def stopped(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+
+    patients = patients_stopped_treatment
+
+    value = patients unless patients.blank?
     render :text => value.to_json
   end
 
-  def transfered(start_date=Time.now, end_date=Time.now, section=nil)
+  def patients_transfered_out(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
@@ -1375,23 +1211,33 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
+  end
+
+  def transfered(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+
+    patients = patients_transfered_out
+
+    value = patients unless patients.blank?
     render :text => value.to_json
   end
 
   def unknown_outcome(start_date=Time.now, end_date=Time.now, section=nil)
-=begin  
-    value = 0
+    value = []
     #to be polished
-    @total_registered = self.art_defaulted_patients(start_date,end_date)
-		@patients_alive_and_on_art = self.total_alive_and_on_art(start_date,end_date)
-		@dafaulted = self.art_defaulted_patients(start_date,end_date)
-		@died_total = self.total_alive_and_on_art(start_date,end_date)
-		@stopped_taking_arvs = self.total_alive_and_on_art(start_date,end_date)
-		@tranferred_out = self.art_defaulted_patients(start_date,end_date)
+    @total_registered = cum_total_patients_reg
+		@patients_alive_and_on_art = total_patients_alive_and_on_art
+		@dafaulted = total_defaulted_patients
+		@died_total = total_patients_died
+		@stopped_taking_arvs = patients_stopped_treatment
+		@tranferred_out = patients_transfered_out
 
-    value = @patients_alive_and_on_art - (@total_registered + @dafaulted + @died_total + @stopped_taking_arvs + @tranferred_out )
+    patients = @patients_alive_and_on_art.to_a - (@total_registered.to_a + @dafaulted.to_a + @died_total.to_a + @stopped_taking_arvs.to_a + @tranferred_out.to_a )
+
+    value = patients unless patients.blank?
     render :text => value.to_json
-=end  
   end
 
   def n1a(start_date=Time.now, end_date=Time.now, section=nil)
@@ -1400,7 +1246,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1417,7 +1267,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
     
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1434,7 +1288,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1451,7 +1309,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1468,7 +1330,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1485,7 +1351,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1503,7 +1373,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1521,7 +1395,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1539,7 +1417,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1557,7 +1439,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1575,7 +1461,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1593,7 +1483,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1611,7 +1505,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1629,7 +1527,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT DISTINCT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1645,7 +1547,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1662,7 +1569,11 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
     
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1679,7 +1590,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ftc.confirmed_tb_not_on_treatment = 'Confirmed TB NOT on treatment'
@@ -1694,7 +1610,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
     
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1710,7 +1631,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1726,7 +1652,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1746,7 +1677,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+    
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               WHERE ftc.earliest_start_date <= '#{end_date}'
@@ -1765,7 +1701,12 @@ def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    @total_patients_alive_and_on_art = total_patients_alive_and_on_art.join(',')
+
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+		@patient_id_on_art_and_alive = @patients_alive_and_on_art
+		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
+		
+		@total_patients_alive_and_on_art = @patient_id_on_art_and_alive.join(',')
     
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               WHERE ftc.earliest_start_date <= '#{end_date}'
