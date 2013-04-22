@@ -1,5 +1,16 @@
 
 class CohortController < ActionController::Base
+  @@first_registration_date = nil
+  
+  def initialize
+
+		@@first_registration_date = FlatCohortTable.find(
+		  :first,
+		  :conditions =>["voided = 0"],
+		  :order => 'earliest_start_date ASC'
+		).earliest_start_date.to_date rescue nil
+
+	end
 
   def index
   end
@@ -110,7 +121,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @total_patients_reg = cum_total_patients_reg
+    @total_patients_reg = cum_total_patients_reg(@@first_registration_date,end_date)
     @total_patients_reg = [] if @total_patients_reg.blank?
 
     @total_patients_reg.each do |patient|  
@@ -372,7 +383,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = cum_infants_reg
+    patients = cum_infants_reg(nil,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -427,7 +438,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = cum_children_reg
+    patients = cum_children_reg(@@first_registration_date,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -482,7 +493,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = cum_adults_reg
+    patients = cum_adults_reg(@@first_registration_date,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -835,7 +846,6 @@ class CohortController < ActionController::Base
 
 
     value = patients unless patients.blank?
-    #render :text => value.to_json
   end
 
   def cum_total_tb_w2yrs(start_date=Time.now, end_date=Time.now, section=nil)
@@ -849,7 +859,6 @@ class CohortController < ActionController::Base
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
-    #render :text => value.to_json
   end
 
   def new_total_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
@@ -866,7 +875,6 @@ class CohortController < ActionController::Base
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
-    #render :text => value.to_json
   end
 
   def cum_total_current_tb(start_date=Time.now, end_date=Time.now, section=nil)
@@ -881,7 +889,6 @@ class CohortController < ActionController::Base
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
-    #render :text => value.to_json
   end
 
   def new_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
@@ -911,9 +918,9 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @new_total_patients_reg = cum_total_patients_reg
-    @new_total_tb_w2yrs_pat_ids = cum_total_tb_w2yrs
-    @new_total_current_tb_pat_ids = cum_total_current_tb
+    @new_total_patients_reg = cum_total_patients_reg(nil,end_date)
+    @new_total_tb_w2yrs_pat_ids = cum_total_tb_w2yrs(nil,end_date)
+    @new_total_current_tb_pat_ids = cum_total_current_tb(nil,end_date)
 
     if !@new_total_patients_reg
       @new_total_patients_reg = []
@@ -939,12 +946,7 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND ftc.pulmonary_tuberculosis_last_2_years = 'Yes'
-                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-
+    patients = new_total_tb_w2yrs(start_date,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -955,10 +957,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            AND ftc.pulmonary_tuberculosis_last_2_years = 'Yes'
-                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+    patients = cum_total_tb_w2yrs(@@first_registration_date,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -970,12 +969,7 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date >= '#{start_date}' 
-                                            AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND (ftc.pulmonary_tuberculosis = 'Yes' OR
-                                                 ftc.extrapulmonary_tuberculosis = 'Yes')
-                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+    patients = new_total_current_tb(start_date,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -986,12 +980,8 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
-                                            WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            AND (ftc.pulmonary_tuberculosis = 'Yes' OR
-                                                 ftc.extrapulmonary_tuberculosis = 'Yes')
-                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-
+    patients = cum_total_current_tb(@@first_registration_date, end_date)
+ 
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -1031,7 +1021,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @patients_defaulted ||= total_defaulted_patients
+    @patients_defaulted ||= total_defaulted_patients(nil,end_date)
 		@patient_id_defaulted = @patients_defaulted
 		@patient_id_defaulted = [0] if @patient_id_defaulted .blank?
 	
@@ -1050,7 +1040,7 @@ class CohortController < ActionController::Base
     value = []
     patients =  []
     
-    @patients_alive_and_on_art = total_patients_alive_and_on_art
+    @patients_alive_and_on_art = total_patients_alive_and_on_art(nil,end_date)
 		@patients_alive_and_on_art = [] if @patients_alive_and_on_art.blank?
     
     patients = @patients_alive_and_on_art
@@ -1137,7 +1127,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = total_patients_died
+    patients = total_patients_died(nil,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1168,7 +1158,7 @@ class CohortController < ActionController::Base
     value = []
     patients =  []
     
-    total_defaulted_patients.each do |patient|  
+    total_defaulted_patients(nil,end_date).each do |patient|  
       patients << patient
     end
     
@@ -1194,7 +1184,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = patients_stopped_treatment
+    patients = patients_stopped_treatment(nil,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1218,7 +1208,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = patients_transfered_out
+    patients = patients_transfered_out(nil,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1227,12 +1217,12 @@ class CohortController < ActionController::Base
   def unknown_outcome(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
     #to be polished
-    @total_registered = cum_total_patients_reg
-		@patients_alive_and_on_art = total_patients_alive_and_on_art
-		@dafaulted = total_defaulted_patients
-		@died_total = total_patients_died
-		@stopped_taking_arvs = patients_stopped_treatment
-		@tranferred_out = patients_transfered_out
+    @total_registered = cum_total_patients_reg(nil,end_date)
+		@patients_alive_and_on_art = total_patients_alive_and_on_art(nil,end_date)
+		@dafaulted = total_defaulted_patients(nil,end_date)
+		@died_total = total_patients_died(nil,end_date)
+		@stopped_taking_arvs = patients_stopped_treatment(nil,end_date)
+		@tranferred_out = patients_transfered_out(nil,end_date)
 
     patients = @patients_alive_and_on_art.to_a - (@total_registered.to_a + @dafaulted.to_a + @died_total.to_a + @stopped_taking_arvs.to_a + @tranferred_out.to_a )
 
@@ -1653,7 +1643,7 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @patients_alive_and_on_art ||= total_patients_alive_and_on_art
+    @patients_alive_and_on_art ||= total_patients_alive_and_on_art(@@first_registration_date,end_date)
 		@patient_id_on_art_and_alive = @patients_alive_and_on_art
 		@patient_id_on_art_and_alive = [0] if @patient_id_on_art_and_alive.blank?
 		
