@@ -139,6 +139,13 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+    patients = FlatTable1.find_by_sql("SELECT ft1.patient_id FROM flat_table1 ft1
+	        LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ft1.patient_id
+        WHERE (ft1.ever_registered_at_art_clinic = 'No' OR ft1.ever_registered_at_art_clinic IS NULL)
+        AND (ft1.earliest_start_date >= '#{start_date}' AND ft1.earliest_start_date <= '#{end_date}')
+        AND (ft2.current_hiv_program_start_date  >= '#{start_date}' AND ft2.current_hiv_program_start_date  <= '#{end_date}' )
+        GROUP BY ft1.patient_id").collect{|p| p.patient_id}
+=begin
     patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id
       FROM flat_cohort_table ft2 LEFT OUTER JOIN flat_table2 ft1 ON ft1.patient_id = ft2.patient_id
       WHERE  ft1.current_hiv_program_state = 'On antiretrovirals'
@@ -147,7 +154,7 @@ class CohortController < ActionController::Base
 	    AND (ft2.ever_registered_at_art  = 'No'
 	      OR ft2.ever_registered_at_art IS NULL)
       GROUP BY ft1.patient_id").collect{|p| p.patient_id}
-
+=end
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -156,7 +163,7 @@ class CohortController < ActionController::Base
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')     
-
+=begin
     patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id
       FROM flat_cohort_table ft2 LEFT OUTER JOIN flat_table2 ft1 ON ft1.patient_id = ft2.patient_id
       WHERE  ft1.current_hiv_program_state = 'On antiretrovirals'
@@ -165,14 +172,16 @@ class CohortController < ActionController::Base
 	    AND (ft2.ever_registered_at_art  = 'No'
 	      OR ft2.ever_registered_at_art IS NULL)
       GROUP BY ft1.patient_id").collect{|p| p.patient_id}
-
-=begin    
-    patients = FlatTable2.find_by_sql("SELECT ft2.patient_id AS patient_id
-      FROM flat_table2 ft2 LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ft2.patient_id
-      WHERE ft2.regimen_category IS NOT NULL AND ft2.current_hiv_program_state = 'On antiretrovirals'
-      AND ft1.earliest_start_date <= '#{end_date}'
-      AND ft1.date_started_art IS NULL GROUP BY ft1.patient_id").collect{|p| p.patient_id}
 =end
+
+    patients = FlatTable1.find_by_sql("SELECT ft1.patient_id FROM flat_table1 ft1
+	        LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ft1.patient_id
+        WHERE (ft1.ever_registered_at_art_clinic = 'No' OR ft1.ever_registered_at_art_clinic IS NULL)
+        AND ft2.current_hiv_program_state = 'On antiretrovirals'
+        AND ft1.earliest_start_date <= '#{end_date}'
+        AND ft2.current_hiv_program_start_date  <= '#{end_date}'
+        GROUP BY ft1.patient_id").collect{|p| p.patient_id}
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
@@ -184,9 +193,10 @@ class CohortController < ActionController::Base
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
+                                              LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND (ftc.taken_art_in_last_two_months = 'No' OR DATEDIFF(ftc.date_art_last_taken_v_date,ftc.date_art_last_taken) > 60)
+                                            AND (ft1.taken_art_in_last_two_months = 'No' OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) > 60)
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -198,8 +208,9 @@ class CohortController < ActionController::Base
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
+                                              LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            AND (ftc.taken_art_in_last_two_months = 'No' OR DATEDIFF(ftc.date_art_last_taken_v_date,ftc.date_art_last_taken) > 60)
+                                            AND (ft1.taken_art_in_last_two_months = 'No' OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) > 60)
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -212,11 +223,11 @@ class CohortController < ActionController::Base
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
-                                            
+                                              LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND ftc.ever_registered_at_art = 'Yes'
-                                            AND (ftc.taken_art_in_last_two_months <> 'Yes' OR DATEDIFF(ftc.date_art_last_taken_v_date,ftc.date_art_last_taken) < 60)
+                                            AND ft1.ever_registered_at_art_clinic = 'Yes'
+                                            AND (ft1.taken_art_in_last_two_months <> 'Yes' OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) < 60)
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -229,10 +240,10 @@ class CohortController < ActionController::Base
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
-                                            
+                                              LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            AND ftc.ever_registered_at_art = 'Yes'
-                                           AND (ftc.taken_art_in_last_two_months <> 'Yes' OR DATEDIFF(ftc.date_art_last_taken_v_date,ftc.date_art_last_taken) < 60)
+                                            AND ft1.ever_registered_at_art_clinic = 'Yes'
+                                           AND (ft1.taken_art_in_last_two_months <> 'Yes' OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) < 60)
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1128,11 +1139,11 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                    LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ftc.patient_id
                 WHERE ft2.current_hiv_program_state = 'Patient died'                
-					      AND  ftc.earliest_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
+					      AND  ftc.earliest_start_date <= '#{end_date}'
+					      AND ft2.current_hiv_program_start_date =  (SELECT max(ft3.current_hiv_program_start_date) 
                                                              FROM flat_table2 ft3
                                                              WHERE ft3.patient_id = ft2.patient_id 
                                                              AND ft3.current_hiv_program_start_date <= '#{end_date}')
-				        AND ft2.current_hiv_program_start_date <= '#{end_date}'
                 AND DATEDIFF(ft2.current_hiv_program_start_date, ftc.earliest_start_date) BETWEEN 30.4375 AND 60.875
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -1148,11 +1159,11 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                    LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ftc.patient_id
                 WHERE ft2.current_hiv_program_state = 'Patient died'                
-					      AND  ftc.earliest_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
+					      AND  ftc.earliest_start_date <= '#{end_date}'
+					      AND ft2.current_hiv_program_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
                                                              FROM flat_table2 ft3
                                                              WHERE ft3.patient_id = ft2.patient_id 
                                                              AND ft3.current_hiv_program_start_date <= '#{end_date}')
-				        AND ft2.current_hiv_program_start_date <= '#{end_date}'
                 AND DATEDIFF(ft2.current_hiv_program_start_date, ftc.earliest_start_date) BETWEEN 60.875 AND 91.3125
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -1168,11 +1179,11 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                    LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ftc.patient_id
                 WHERE ft2.current_hiv_program_state = 'Patient died'                
-					      AND  ftc.earliest_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
+					      AND  ftc.earliest_start_date <= '#{end_date}'
+					      AND ft2.current_hiv_program_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
                                                              FROM flat_table2 ft3
                                                              WHERE ft3.patient_id = ft2.patient_id 
                                                              AND ft3.current_hiv_program_start_date <= '#{end_date}')
-				        AND ft2.current_hiv_program_start_date <= '#{end_date}'
                 AND DATEDIFF(ft2.current_hiv_program_start_date, ftc.earliest_start_date) BETWEEN 91.3125 AND 1000000
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -1188,11 +1199,11 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
                    LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ftc.patient_id
                 WHERE ft2.current_hiv_program_state = 'Patient died'                
-					      AND  ftc.earliest_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
+					      AND  ftc.earliest_start_date <= '#{end_date}'
+					      AND ft2.current_hiv_program_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
                                                              FROM flat_table2 ft3
                                                              WHERE ft3.patient_id = ft2.patient_id 
                                                              AND ft3.current_hiv_program_start_date <= '#{end_date}')
-				        AND ft2.current_hiv_program_start_date <= '#{end_date}'
                 GROUP BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
   end
@@ -1217,13 +1228,14 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id
                               FROM flat_cohort_table ftc
                               	LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ftc.patient_id
-                              WHERE ftc.hiv_program_state NOT IN ('Patient died','Treatment stopped','Patient transferred out')
+                              WHERE ft2.current_hiv_program_state NOT IN ('Patient died','Treatment stopped','Patient transferred out', 'Patient transferred (External facility)', 'Patient transferred (Within facility)','Transferred internally' )
                               AND ftc.death_date IS NULL
                               AND ftc.earliest_start_date <= '#{end_date}'
                               AND ft2.current_hiv_program_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
                                                              FROM flat_table2 ft3
                                                              WHERE ft3.patient_id = ft2.patient_id 
-                                                             AND ft3.current_hiv_program_start_date <= '#{end_date}')
+                                                             AND ft3.current_hiv_program_start_date <= '#{end_date}'
+                                                             AND ft3.current_hiv_program_start_date IS NOT NULL)
                               AND (DATEDIFF('#{end_date}', ft2.drug_auto_expire_date1) > 60 OR 
                                    DATEDIFF('#{end_date}', ft2.drug_auto_expire_date2) > 60 OR
                                    DATEDIFF('#{end_date}', ft2.drug_auto_expire_date3) > 60 OR
@@ -1284,7 +1296,7 @@ class CohortController < ActionController::Base
 
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                   LEFT OUTER JOIN flat_table2 ft2 ON ft2.patient_id = ftc.patient_id
-                WHERE ft2.current_hiv_program_state = 'Patient transferred out'                
+                WHERE ft2.current_hiv_program_state IN ('Patient transferred out','Transferred internally', 'Patient transferred (External facility)', 'Patient transferred (Within facility)')                
 					      AND  ftc.earliest_start_date <= '#{end_date}'
 				        AND ft2.current_hiv_program_start_date = (SELECT max(ft3.current_hiv_program_start_date) 
                                                              FROM flat_table2 ft3
