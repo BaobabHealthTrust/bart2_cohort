@@ -95,12 +95,18 @@ class CohortController < ActionController::Base
 
     $defaulters ||= defaulters(@@start_date,end_date)
 
+    if $defaulters.blank?
+      additional_sql = ''
+    else
+      additional_sql = " AND ftc.patient_id NOT IN (#{$defaulters.join(',')})"
+    end
+  
     $total_alive_and_on_art = FlatCohortTable.find_by_sql("SELECT ftc.patient_id, 
                                  current_state_for_patient_in_flat_tables(ftc.patient_id, '#{end_date}') AS state
                                FROM flat_cohort_table ftc
                                WHERE ftc.earliest_start_date <= '#{end_date}'
                                AND current_state_for_patient_in_flat_tables(ftc.patient_id, '#{end_date}') = 'On antiretrovirals'
-                               AND ftc.patient_id NOT IN (#{$defaulters.join(',')})
+                               #{additional_sql}
                                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
  end
 

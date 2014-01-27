@@ -424,9 +424,68 @@
           }
         }
       }
-            
+       
+
+     
+     /*
+      We are currently hard-coding this rules but soon will be pulling from the 
+      database 
+     */
+      var rules = 
+        ["new_total_reg","cum_total_reg","new_ft","cum_ft","new_re","cum_re",
+         "new_ti","cum_ti","new_males","cum_males","new_non_preg","cum_non_preg",
+         "new_preg_all_age","cum_preg_all_age","new_a","cum_a","new_b","cum_b",
+         "new_c","cum_c","new_unk_age","cum_unk_age","new_pres_hiv","cum_pres_hiv",
+         "new_conf_hiv","cum_conf_hiv","new_who_1_2","cum_who_1_2","new_who_2",
+         "cum_who_2","new_children","cum_children","new_breastfeed","cum_breastfeed",
+         "new_preg","cum_preg","new_who_3","cum_who_3","new_who_4","cum_who_4",
+         "new_other_reason","cum_other_reason","new_no_tb","cum_no_tb",
+         "new_tb_w2yrs","cum_tb_w2yrs","new_current_tb","cum_current_tb","new_ks",
+         "cum_ks","total_on_art","died_1st_month","died_2nd_month","died_3rd_month",
+         "died_after_3rd_month","died_total","defaulted","stopped","transfered",
+         "unknown_outcome","n1a","n1p","n2a","n2p","n3a","n3p","n4a","n4p","n5a",
+         "n6a","n7a","n8a","n9p","non_std","side_effects","missed_0_6","missed_7plus",
+         "tb_no_suspect","tb_suspected","tb_confirm_not_treat",
+         "tb_confirmed","unknown_tb"
+      ];
+
+      var cohort_values = {};
+
+      function initCohortValues() {
+        for(var i = 0; i < rules.length; i++) {
+          cohort_values[rules[i]] = 0;
+        }
+      }
+
+      function checkForConsistency() {
+        table = window.frames.document.body.getElementsByTagName('table')[0];
+        tdata = table.getElementsByTagName("td");
+        for(var i = 0; i < tdata.length; i++) {
+          for(var j = 0; j < rules.length; j++) {
+            if (tdata[i].id == rules[j]){
+              if(tdata[i].getElementsByTagName('form')){
+                e = tdata[i].getElementsByTagName('form')[0]; //.getElementsByTagName("submit")[0];
+                if (e) {
+                  for (var k = 0; k < e.length; k++) {
+                    if(e[k].type == 'submit') {
+                      setCohortValues(rules[j] , e[k].value);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      function setCohortValues(rule, value) {
+        cohort_values[rule] = value;
+      }
+
+      initCohortValues();
       createTable();
       loadFields();
+      setTimeout(checkForConsistency,2000);
       //-->
     </script>
   </body>
