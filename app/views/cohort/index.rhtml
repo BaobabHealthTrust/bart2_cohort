@@ -450,9 +450,13 @@
          "tb_confirmed","unknown_tb"
       ];
 
-      var set_rules = {};
-      set_rules["new_total_reg"] = [">=","{cum_total_reg}"];
-
+      var set_rules = [];
+      var set_rules_descriptions = [];
+      <%ValidationRule.all.each do |r| %>
+        set_rules.push("<%=r.expr%>");
+        set_rules_descriptions.push("<%=r.desc%>" + 'Did not pass .... ' + "<%=r.expr%>");
+      <%end%>
+       
       var cohort_values = {};
 
 
@@ -494,8 +498,17 @@
         cohort_values[rule] = value;
       }
 
+
+      /*This block is replacing the Text validation rules from the database with
+      the actual values of the cohort report
+      */
       function showConsistencyCheckResults() {
-        for (rule in cohort_values) {
+        for (var i = 0; i < rules.length; i++) {
+          rule = "{" + rules[i] + "}";
+          rule_value = cohort_values[rules[i]];
+          for (var x = 0; x < set_rules.length; x++) {
+            set_rules[x] = set_rules[x].replace(rule,rule_value);
+          }
         }
         buildConsistencyTable();
       }
@@ -504,6 +517,11 @@
       function buildConsistencyTable() {
         t = window.frames.document.body.getElementsByTagName('table')[0];
         cTable = t.getElementsByClassName("consistency-section")[0];
+        for(var i = 0; i < set_rules.length; i++) {
+          if(!(eval(set_rules[i]))){
+            alert(set_rules_descriptions[i]);
+          }
+        }
 /*
 <tr>
 <th style="background-color: #ccc;"></th>
