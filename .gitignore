@@ -15,4 +15,5 @@ rerun.txt
 nbproject
 Gemfile.lock
 log/*
+tmp/*
 .idea/*
