@@ -33,6 +33,7 @@
         <th colspan="4" class="header" style="background-color: #6281A7;
             padding: 10px; color: #fff; font-weight: normal;">
           <span id="qtr">{quarter}</span> Cohort Report
+          <br /><div class="consistency-section"></div>
         </th>
       </tr>
       <tr>
@@ -449,14 +450,23 @@
          "tb_confirmed","unknown_tb"
       ];
 
+      var set_rules = {};
+      set_rules["new_total_reg"] = [">=","{cum_total_reg}"];
+
       var cohort_values = {};
 
+
+      /*This block is initializing the cohort_values hash to zero*/
       function initCohortValues() {
         for(var i = 0; i < rules.length; i++) {
           cohort_values[rules[i]] = 0;
         }
       }
 
+
+      /* This block of code is assigning cohort numbers(results) to their approiate
+      fields: the global val setCohortValues will hold the result against its field name.
+      */
       function checkForConsistency() {
         table = window.frames.document.body.getElementsByTagName('table')[0];
         tdata = table.getElementsByTagName("td");
@@ -464,7 +474,7 @@
           for(var j = 0; j < rules.length; j++) {
             if (tdata[i].id == rules[j]){
               if(tdata[i].getElementsByTagName('form')){
-                e = tdata[i].getElementsByTagName('form')[0]; //.getElementsByTagName("submit")[0];
+                e = tdata[i].getElementsByTagName('form')[0]; 
                 if (e) {
                   for (var k = 0; k < e.length; k++) {
                     if(e[k].type == 'submit') {
@@ -476,10 +486,37 @@
             }
           }
         }
+        showConsistencyCheckResults();
       }
 
+      /*assigning cohort values (results) to the hash cohort_values*/
       function setCohortValues(rule, value) {
         cohort_values[rule] = value;
+      }
+
+      function showConsistencyCheckResults() {
+        for (rule in cohort_values) {
+        }
+        buildConsistencyTable();
+      }
+
+
+      function buildConsistencyTable() {
+        t = window.frames.document.body.getElementsByTagName('table')[0];
+        cTable = t.getElementsByClassName("consistency-section")[0];
+/*
+<tr>
+<th style="background-color: #ccc;"></th>
+<th class="header" style="background-color: #6281A7; padding: 10px; color: #fff; font-weight: normal;" colspan="4">
+<span id="qtr">
+
+<!-- Data -->
+
+</span>
+</th>
+</tr>
+*/
+
       }
 
       initCohortValues();
