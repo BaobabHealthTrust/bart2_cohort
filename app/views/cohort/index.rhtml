@@ -32,6 +32,11 @@
         background-color: black;
         color: green;
       }
+
+      .err-num {
+        width: 3%;
+      }
+
     </style>
   </head>
   <body>
@@ -465,7 +470,7 @@
       var set_rules_descriptions = [];
       <%ValidationRule.all.each do |r| %>
         set_rules.push("<%=r.expr%>");
-        set_rules_descriptions.push("<%=r.desc%>" + 'Failed: ' + "<%=r.expr%>");
+        set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
       <%end%>
        
       /*This block is initializing the cohort_values hash to zero*/
@@ -527,18 +532,23 @@
         t = window.frames.document.body.getElementsByTagName('table')[0];
         cTable = t.getElementsByClassName("consistency-section")[0];
         tableRows = [];
+
+        /*this block is where the rules are executed to determine those that have
+        failed or passed*/
         for(var i = 0; i < set_rules.length; i++) {
           if(!(eval(set_rules[i]))){
             tableRows.push(set_rules_descriptions[i]);
           }
         }
+        /* ..................................................................*/
 
         var tRows = "";
         if(tableRows.length < 1) {
           tRows += "<tr><td class='pass-rows'>The report has passed all external consistency checks</td></tr>";
         }else{
           for(var i = 0; i < tableRows.length; i++) {
-            tRows += "<tr><td class='err-rows'>" + tableRows[i] + "</td></tr>";
+            tRows += "<tr><td class='err-rows err-num'>" + (i + 1) + "</td>";
+            tRows += "<td class='err-rows'>" + tableRows[i] + "</td></tr>";
           }
         }
         cTable.innerHTML = tRows;
