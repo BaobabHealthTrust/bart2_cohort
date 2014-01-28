@@ -5,3 +5,12 @@
 #   
 #   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
 #   Major.create(:name => 'Daley', :city => cities.first)
+
+# Validation rules for cohort report
+puts "Adding validation rules for cohort reports"
+File.read('db/validation_rules.txt').each do |expr|
+  
+  if expr.match('^#').nil? && expr.strip.length > 0
+    ValidationRule.create :expr => expr.strip
+  end
+end
