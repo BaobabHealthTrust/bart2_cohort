@@ -22,6 +22,16 @@
         text-align: center;
         min-width: 70px;
       }
+
+      .err-rows {
+        background-color: red;
+        color: white;
+      }
+
+      .pass-rows {
+        background-color: black;
+        color: green;
+      }
     </style>
   </head>
   <body>
@@ -33,7 +43,7 @@
         <th colspan="4" class="header" style="background-color: #6281A7;
             padding: 10px; color: #fff; font-weight: normal;">
           <span id="qtr">{quarter}</span> Cohort Report
-          <br /><div class="consistency-section"></div>
+          <br /><table style="width: 100%;" class="consistency-section"></table>
         </th>
       </tr>
       <tr>
@@ -450,17 +460,16 @@
          "tb_confirmed","unknown_tb"
       ];
 
+      /*assigning rules and rule descriptions from the ValidationRule table*/
       var set_rules = [];
       var set_rules_descriptions = [];
       <%ValidationRule.all.each do |r| %>
         set_rules.push("<%=r.expr%>");
-        set_rules_descriptions.push("<%=r.desc%>" + 'Did not pass .... ' + "<%=r.expr%>");
+        set_rules_descriptions.push("<%=r.desc%>" + 'Failed: ' + "<%=r.expr%>");
       <%end%>
        
-      var cohort_values = {};
-
-
       /*This block is initializing the cohort_values hash to zero*/
+      var cohort_values = {};
       function initCohortValues() {
         for(var i = 0; i < rules.length; i++) {
           cohort_values[rules[i]] = 0;
@@ -517,24 +526,22 @@
       function buildConsistencyTable() {
         t = window.frames.document.body.getElementsByTagName('table')[0];
         cTable = t.getElementsByClassName("consistency-section")[0];
+        tableRows = [];
         for(var i = 0; i < set_rules.length; i++) {
           if(!(eval(set_rules[i]))){
-            alert(set_rules_descriptions[i]);
+            tableRows.push(set_rules_descriptions[i]);
           }
         }
-/*
-<tr>
-<th style="background-color: #ccc;"></th>
-<th class="header" style="background-color: #6281A7; padding: 10px; color: #fff; font-weight: normal;" colspan="4">
-<span id="qtr">
 
-<!-- Data -->
-
-</span>
-</th>
-</tr>
-*/
-
+        var tRows = "";
+        if(tableRows.length < 1) {
+          tRows += "<tr><td class='pass-rows'>The report has passed all external consistency checks</td></tr>";
+        }else{
+          for(var i = 0; i < tableRows.length; i++) {
+            tRows += "<tr><td class='err-rows'>" + tableRows[i] + "</td></tr>";
+          }
+        }
+        cTable.innerHTML = tRows;
       }
 
       initCohortValues();
