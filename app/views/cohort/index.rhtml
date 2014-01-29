@@ -465,13 +465,16 @@
          "tb_confirmed","unknown_tb"
       ];
 
-      /*assigning rules and rule descriptions from the ValidationRule table*/
       var set_rules = [];
       var set_rules_descriptions = [];
-      <%ValidationRule.all.each do |r| %>
-        set_rules.push("<%=r.expr%>");
-        set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
-      <%end%>
+
+      /*assigning rules and rule descriptions from the ValidationRule table*/
+      function initSetRulesDescriptions() {
+        <%ValidationRule.all.each do |r| %>
+          set_rules.push("<%=r.expr%>");
+          set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
+        <%end%>
+      }
        
       /*This block is initializing the cohort_values hash to zero*/
       var cohort_values = {};
@@ -479,8 +482,8 @@
         for(var i = 0; i < rules.length; i++) {
           cohort_values[rules[i]] = 0;
         }
+        initSetRulesDescriptions();
       }
-
 
       /* This block of code is assigning cohort numbers(results) to their approiate
       fields: the global val setCohortValues will hold the result against its field name.
@@ -532,6 +535,7 @@
         t = window.frames.document.body.getElementsByTagName('table')[0];
         cTable = t.getElementsByClassName("consistency-section")[0];
         tableRows = [];
+        cTable.innerHTML = null;
 
         /*this block is where the rules are executed to determine those that have
         failed or passed*/
