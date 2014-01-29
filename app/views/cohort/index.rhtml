@@ -22,6 +22,21 @@
         text-align: center;
         min-width: 70px;
       }
+
+      .err-rows {
+        background-color: red;
+        color: white;
+      }
+
+      .pass-rows {
+        background-color: black;
+        color: green;
+      }
+
+      .err-num {
+        width: 3%;
+      }
+
     </style>
   </head>
   <body>
@@ -33,6 +48,7 @@
         <th colspan="4" class="header" style="background-color: #6281A7;
             padding: 10px; color: #fff; font-weight: normal;">
           <span id="qtr">{quarter}</span> Cohort Report
+          <br /><table style="width: 100%;" class="consistency-section"></table>
         </th>
       </tr>
       <tr>
@@ -449,14 +465,29 @@
          "tb_confirmed","unknown_tb"
       ];
 
-      var cohort_values = {};
+      var set_rules = [];
+      var set_rules_descriptions = [];
 
+      /*assigning rules and rule descriptions from the ValidationRule table*/
+      function initSetRulesDescriptions() {
+        <%ValidationRule.all.each do |r| %>
+          set_rules.push("<%=r.expr%>");
+          set_rules_descriptions.push('Failed: ' + "<%=r.desc%>");
+        <%end%>
+      }
+       
+      /*This block is initializing the cohort_values hash to zero*/
+      var cohort_values = {};
       function initCohortValues() {
         for(var i = 0; i < rules.length; i++) {
           cohort_values[rules[i]] = 0;
         }
+        initSetRulesDescriptions();
       }
 
+      /* This block of code is assigning cohort numbers(results) to their approiate
+      fields: the global val setCohortValues will hold the result against its field name.
+      */
       function checkForConsistency() {
         table = window.frames.document.body.getElementsByTagName('table')[0];
         tdata = table.getElementsByTagName("td");
@@ -464,7 +495,7 @@
           for(var j = 0; j < rules.length; j++) {
             if (tdata[i].id == rules[j]){
               if(tdata[i].getElementsByTagName('form')){
-                e = tdata[i].getElementsByTagName('form')[0]; //.getElementsByTagName("submit")[0];
+                e = tdata[i].getElementsByTagName('form')[0]; 
                 if (e) {
                   for (var k = 0; k < e.length; k++) {
                     if(e[k].type == 'submit') {
@@ -476,10 +507,55 @@
             }
           }
         }
+        showConsistencyCheckResults();
       }
 
+      /*assigning cohort values (results) to the hash cohort_values*/
       function setCohortValues(rule, value) {
         cohort_values[rule] = value;
+      }
+
+
+      /*This block is replacing the Text validation rules from the database with
+      the actual values of the cohort report
+      */
+      function showConsistencyCheckResults() {
+        for (var i = 0; i < rules.length; i++) {
+          rule = "{" + rules[i] + "}";
+          rule_value = cohort_values[rules[i]];
+          for (var x = 0; x < set_rules.length; x++) {
+            set_rules[x] = set_rules[x].replace(rule,rule_value);
+          }
+        }
+        buildConsistencyTable();
+      }
+
+
+      function buildConsistencyTable() {
+        t = window.frames.document.body.getElementsByTagName('table')[0];
+        cTable = t.getElementsByClassName("consistency-section")[0];
+        tableRows = [];
+        cTable.innerHTML = null;
+
+        /*this block is where the rules are executed to determine those that have
+        failed or passed*/
+        for(var i = 0; i < set_rules.length; i++) {
+          if(!(eval(set_rules[i]))){
+            tableRows.push(set_rules_descriptions[i]);
+          }
+        }
+        /* ..................................................................*/
+
+        var tRows = "";
+        if(tableRows.length < 1) {
+          tRows += "<tr><td class='pass-rows'>The report has passed all external consistency checks</td></tr>";
+        }else{
+          for(var i = 0; i < tableRows.length; i++) {
+            tRows += "<tr><td class='err-rows err-num'>" + (i + 1) + "</td>";
+            tRows += "<td class='err-rows'>" + tableRows[i] + "</td></tr>";
+          }
+        }
+        cTable.innerHTML = tRows;
       }
 
       initCohortValues();
