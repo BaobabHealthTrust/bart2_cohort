@@ -16,3 +16,13 @@ expr;desc
 {total_on_art} >= {side_effects};Total patients with side effects should not exceed Total alive and on ART
 {total_on_art} >= {missed_0_6} + {missed_7plus};Patients with 0-6 doses missed at their last visit(before end of quarter evaluated), and Patients with 7+ doses missed at their last visit(before end of quarter evaluated) should add up to Total alive and on ART
 {total_on_art} == {tb_no_suspect} + {tb_suspected} + {tb_confirm_not_treat} + {tb_confirmed} + {unknown_tb};TB not suspected, TB suspected, TB confirmed not yet/currently not on TB treatment, TB confirmed on TB treatment, and Unknown TB status should add up to Total alive and on ART
+;Dead patients with follow up visits
+;Male patients with pregnant observations
+;Patients moved from 2nd line to 1st line regimen
+;Patients moved from 2nd line to 1st line regimen
+;Patients with ARV dispensations before their ART start dates
+;Patients with incomplete visits 
+;Patients with missing dispensations
+;Patients with missing prescriptions
+;Patients with multiple start reasons
+;Patients with out-of-range ARV numbers

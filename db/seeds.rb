@@ -11,8 +11,9 @@ require 'fastercsv'
 puts "Adding validation rules for cohort reports"
 FasterCSV.foreach('db/validation_rules.csv',
                   :col_sep => ';', :headers => :first_row) do |row|
-  
-  if row['expr'].match('^#').nil? && row['expr'].strip.length > 0
-    ValidationRule.create :expr => row['expr'].strip, :desc => row['desc']
+  expr = row['expr'] || ''
+  desc = row['desc']
+  if expr.match('^#').nil? and (expr+desc).strip.length > 0
+    ValidationRule.create :expr => expr.strip, :desc => desc
   end
 end
