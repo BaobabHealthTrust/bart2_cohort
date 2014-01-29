@@ -7,10 +7,12 @@
 #   Major.create(:name => 'Daley', :city => cities.first)
 
 # Validation rules for cohort report
+require 'fastercsv'
 puts "Adding validation rules for cohort reports"
-File.read('db/validation_rules.txt').each do |expr|
+FasterCSV.foreach('db/validation_rules.csv',
+                  :col_sep => ';', :headers => :first_row) do |row|
   
-  if expr.match('^#').nil? && expr.strip.length > 0
-    ValidationRule.create :expr => expr.strip
+  if row['expr'].match('^#').nil? && row['expr'].strip.length > 0
+    ValidationRule.create :expr => row['expr'].strip, :desc => row['desc']
   end
 end
