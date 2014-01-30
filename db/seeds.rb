@@ -13,7 +13,8 @@ FasterCSV.foreach('db/validation_rules.csv',
                   :col_sep => ';', :headers => :first_row) do |row|
   expr = row['expr'] || ''
   desc = row['desc']
+  type_id = row['type_id']
   if expr.match('^#').nil? and (expr+desc).strip.length > 0
-    ValidationRule.create :expr => expr.strip, :desc => desc
+    ValidationRule.create :expr => expr.strip, :desc => desc, :type_id => type_id
   end
 end
