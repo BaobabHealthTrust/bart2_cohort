@@ -8,20 +8,39 @@ class ValidationRule < ActiveRecord::Base
 
   def self.data_consistency_checks(date = Date.today)
     data_consistency_checks = {}
-    data_consistency_checks['Incomplete visits'] = self.incomplete_visits(date)
-    data_consistency_checks['Dead patients with visits'] = self.dead_patients_with_visits
-    data_consistency_checks['Male patients with pregnant observation'] = self.male_patients_with_pregnant_observation
+    data_consistency_checks['Patients with incomplete visits'] = self.incomplete_visits(date)
+    data_consistency_checks['Dead patients with follow up visits'] = self.dead_patients_with_visits
+    data_consistency_checks['Male patients with pregnant observations'] = self.male_patients_with_pregnant_observation
     data_consistency_checks['Male patients with breastfeeding observation'] = self.male_patients_with_pregnant_observation
     data_consistency_checks['Male patients with breastfeeding as a reason for starting'] = self.male_patients_with_breastfeeding_as_a_reason_for_starting
     data_consistency_checks["Male patients with pregnant as a reason for starting"] = self.male_patients_with_pregnant_as_a_reason_for_starting
     data_consistency_checks["Patients with ARV dispensations before their ART start dates"] = self.patients_with_arv_dispensations_before_their_art_start_dates
     data_consistency_checks["Patients with missing dispensations"] = self.prescription_without_dispensation
 
+
+    set_rules = self.find(:all,:conditions =>['type_id = 2'])
+    (set_rules || []).each do |rule|
+      unless data_consistency_checks[rule.desc].blank?
+        create_update_validation_result(rule,data_consistency_checks[rule.desc])
+      end
+    end
+
     return data_consistency_checks
   end
 
 
   private
+
+  def self.create_update_validation_result(rule,patient_ids)
+    date_checked = Date.today
+    v = ValidationResult.find(:first,
+      :conditions =>["date_checked = ? AND rule_id = ?", date_checked,rule.id])
+    return ValidationResult.create(:rule_id => rule.id, :failures => patient_ids.length,
+      :date_checked => date_checked) if v.blank?
+
+    v.failures = patient_ids.length
+    v.save
+  end
 
   def self.male_patients_with_pregnant_observation
     ValidationRule.find_by_sql("
