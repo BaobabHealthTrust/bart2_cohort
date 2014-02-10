@@ -1279,7 +1279,7 @@ class CohortController < ActionController::Base
                 WHERE visit_date = (SELECT max(DATE(encounter_datetime)) from encounter
                                     WHERE patient_id = ft2.patient_id
 				                            AND voided = 0
-					                          AND encounter_datetime <= '2013-09-30 23:59:59')
+					                          AND encounter_datetime <= '#{end_date}')
                 AND ft2.current_hiv_program_state = 'Treatment stopped'").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1309,7 +1309,7 @@ class CohortController < ActionController::Base
                 WHERE visit_date = (SELECT max(DATE(encounter_datetime)) from encounter
                                     WHERE patient_id = ft2.patient_id
 				                            AND voided = 0
-					                          AND encounter_datetime <= '2013-09-30 23:59:59')
+					                          AND encounter_datetime <= '#{end_date}')
                 AND ft2.current_hiv_program_state IN ('Patient transferred out','Transferred internally', 'Patient transferred (External facility)', 'Patient transferred (Within facility)') ").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1355,7 +1355,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '1A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1377,7 +1377,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '1P'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1399,7 +1399,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '2A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1421,7 +1421,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '2P'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1443,7 +1443,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '3A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1465,7 +1465,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '3P'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1487,7 +1487,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '4A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1509,7 +1509,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '4P'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1531,7 +1531,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '5A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1553,7 +1553,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '6A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1575,7 +1575,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '7A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1597,7 +1597,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '8A'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1619,7 +1619,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = '9P'
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
@@ -1641,7 +1641,7 @@ class CohortController < ActionController::Base
                     AND enc.encounter_datetime = (SELECT MAX(e1.encounter_datetime) FROM encounter e1
 			                                            WHERE e1.patient_id = enc.patient_id
                                                   AND e1.encounter_type = enc.encounter_type  
-			                                            AND e1.encounter_datetime < '2013-09-30 23:59:59'
+			                                            AND e1.encounter_datetime < '#{end_date}'
                                                   AND e1.voided = 0)
                     AND ft2.regimen_category = ''
                     GROUP BY ft2.patient_id").collect{|p| p.patient_id}
