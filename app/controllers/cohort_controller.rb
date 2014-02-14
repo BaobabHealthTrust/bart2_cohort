@@ -92,7 +92,7 @@ class CohortController < ActionController::Base
 
  end
  
- def total_alive_and_on_art(defaulted_patients)
+  def total_alive_and_on_art(defaulted_patients)
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     $defaulters ||= defaulters(@@start_date,end_date)
@@ -112,6 +112,11 @@ class CohortController < ActionController::Base
                                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     patients = []
+    
+    defaulters = 0
+    
+    defaulters = defaulted_patients.join(',') if !defaulted_patients.blank?
+    
 		if @@total_alive_and_on_art.blank?
         patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, 
                       ft2.current_hiv_program_start_date, ft2.current_hiv_program_state
@@ -121,7 +126,7 @@ class CohortController < ActionController::Base
 				                                WHERE patient_id = ftc.patient_id
 				                                AND voided = 0)
                     AND ft2.current_hiv_program_state = 'On antiretrovirals'
-                    AND ftc.patient_id NOT IN (#{defaulted_patients.join(',')})
+                    AND ftc.patient_id NOT IN (#{defaulters})
                     GROUP BY ft2.patient_id").map(&:patient_id)
 			
 			@@total_alive_and_on_art = patients
@@ -130,6 +135,7 @@ class CohortController < ActionController::Base
 		end
    
  end
+
 
   # Start Cohort queries
   def defaulted(start_date=Time.now, end_date=Time.now, section=nil)
