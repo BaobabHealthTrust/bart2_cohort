@@ -18,7 +18,7 @@ class ValidationResultsController < ActionController::Base
       :conditions => ['date_checked >= ? AND date_checked <= ?',
                       start_date.to_date, end_date.to_date])
     
-    resp = results.map { |r| {:rule_id => r.rule_id,
+    resp = results.map { |r| {:rule_id => r.rule_id,:rule_desc => r.validation_rule.desc ,
                               :date_checked => r.date_checked.strftime("%Y-%m-%d"),
                               :failures => r.failures}
                        }

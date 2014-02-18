@@ -77,7 +77,7 @@ class ValidationRule < ActiveRecord::Base
   def self.patients_with_arv_dispensations_before_their_art_start_dates
     ValidationRule.find_by_sql("
     SELECT patient_id FROM flat_table1
-    WHERE earliest_start_date < date_started_art;").map(&:person_id)
+    WHERE earliest_start_date < date_started_art;").map(&:patient_id)
   end
 
   def self.prescription_without_dispensation
