@@ -21,7 +21,7 @@ class ValidationRule < ActiveRecord::Base
     set_rules = self.find(:all,:conditions =>['type_id = 2'])
     (set_rules || []).each do |rule|
       unless data_consistency_checks[rule.desc].blank?
-        create_update_validation_result(rule,data_consistency_checks[rule.desc])
+        create_update_validation_result(rule, date, data_consistency_checks[rule.desc])
       end
     end
 
@@ -31,8 +31,8 @@ class ValidationRule < ActiveRecord::Base
 
   private
 
-  def self.create_update_validation_result(rule,patient_ids)
-    date_checked = Date.today
+  def self.create_update_validation_result(rule, date, patient_ids)
+    date_checked = date.to_date
     v = ValidationResult.find(:first,
       :conditions =>["date_checked = ? AND rule_id = ?", date_checked,rule.id])
     return ValidationResult.create(:rule_id => rule.id, :failures => patient_ids.length,
