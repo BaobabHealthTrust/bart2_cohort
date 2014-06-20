@@ -6,7 +6,7 @@ class CohortController < ActionController::Base
   @@start_date = nil
   @@end_date = nil
   @@regimens = nil
-  
+
   def initialize
 	
 		@@first_registration_date = FlatCohortTable.find(
@@ -258,12 +258,12 @@ class CohortController < ActionController::Base
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND ft1.ever_registered_at_art_clinic = 'Yes'
-                                            AND (ft1.taken_art_in_last_two_months = 'No' OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) > 14)
+                                            AND (ft1.taken_art_in_last_two_months = 'No'
+                                            OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) > 14)
                                               GROUP BY ftc.patient_id").collect{|p| p.patient_id}
     patients -= first_time_pats
 
     value = patients unless patients.blank?
-    #render :text => value.to_json
   end
 
   def cum_re_initiated(start_date=Time.now, end_date=Time.now, section=nil)
@@ -277,14 +277,14 @@ class CohortController < ActionController::Base
                                               LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND ft1.ever_registered_at_art_clinic = 'Yes'
-                                            AND (ft1.taken_art_in_last_two_months = 'No' OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) > 14)
+                                            AND (ft1.taken_art_in_last_two_months = 'No'
+                                             OR DATEDIFF(ft1.date_art_last_taken_v_date,ft1.date_art_last_taken) > 14)
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     patients -= first_time_pats
     value = patients unless patients.blank?
     #render :text => value.to_json
   end
-
 
   def new_ft(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
@@ -312,11 +312,12 @@ class CohortController < ActionController::Base
 
   def new_re(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
+    patients = []
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
     
-    patients = new_re_initiated(start_date, end_date)
+    patients = new_re_initiated(start_date, end_date) rescue []
     
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -340,13 +341,9 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    @newly_total_registered = new_total_patients_reg(start_date,end_date)
-    @newly_first_time = new_first_time(start_date,end_date)
-    @newly_re_initied = new_re_initiated(start_date,end_date)
-              
-    @newly_total_registered = [] if @newly_total_registered.blank?
-    @newly_first_time = [] if @newly_first_time.blank?
-    @newly_re_initied = [] if @newly_re_initied.blank?
+    @newly_total_registered = new_total_patients_reg(start_date,end_date) rescue []
+    @newly_first_time = new_first_time(start_date,end_date) rescue []
+    @newly_re_initied = new_re_initiated(start_date,end_date) rescue []
                 
     patients = (@newly_total_registered.to_a - (@newly_first_time.to_a + @newly_re_initied.to_a))
 
@@ -363,10 +360,6 @@ class CohortController < ActionController::Base
     @cum_total_registered = cum_total_patients_reg(@@first_registration_date,end_date)
     @cum_first_time = cum_first_time(@@first_registration_date,end_date)
     @cum_re_initied = cum_re_initiated(@@first_registration_date,end_date)
-
-    @cum_total_registered = [] if @cum_total_registered.blank?
-    @cum_first_time = [] if @cum_first_time.blank?
-    @cum_re_initied = [] if @cum_re_initied.blank?
 
     patients = (@cum_total_registered.to_a - (@cum_first_time.to_a + @cum_re_initied.to_a))
 
@@ -402,44 +395,154 @@ class CohortController < ActionController::Base
     render :text => value.to_json
   end
 
+  def new_patient_pregnant(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+    patients = []
+
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+
+    patients = FlatCohortTable.find_by_sql("SELECT 
+                                      ft2.patient_id
+                                  FROM
+                                      flat_table1 ft2
+                                          INNER join
+                                      flat_table1 ftc ON ftc.patient_id = ft2.patient_id
+                                          INNER JOIN
+                                      encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
+                                          and e.voided = 0
+                                          AND e.encounter_type IN (52)
+                                  WHERE
+                                      (e.encounter_datetime >= '#{start_date}'
+                                          AND e.encounter_datetime <= '#{end_date}')
+                                          AND (ftc.earliest_start_date >= '#{start_date}'
+                                          AND ftc.earliest_start_date <= '#{end_date}')
+                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                              ftc.earliest_start_date) <= 30
+                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                              ftc.earliest_start_date) > - 1
+                                          AND ft2.pregnant_yes = 'Yes'
+                                  GROUP BY ft2.patient_id
+                                  UNION ALL
+                                  SELECT 
+                                      ft2.patient_id
+                                  FROM
+                                      flat_table2 ft2
+                                          INNER join
+                                      flat_table1 ftc ON ftc.patient_id = ft2.patient_id
+                                          INNER JOIN
+                                      encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
+                                          and e.voided = 0
+                                          AND e.encounter_type IN (53)
+                                  WHERE
+                                      (e.encounter_datetime >= '#{start_date}'
+                                          AND e.encounter_datetime <= '#{end_date}')
+                                          AND (ftc.earliest_start_date >= '#{start_date}'
+                                          AND ftc.earliest_start_date <= '#{end_date}')
+                                          AND DATEDIFF(ft2.visit_date,
+                                              ftc.earliest_start_date) <= 30
+                                          AND DATEDIFF(ft2.visit_date,
+                                              ftc.earliest_start_date) > - 1
+                                          AND ft2.pregnant_yes = 'Yes'
+                                  GROUP BY ft2.patient_id").map(&:patient_id)
+
+    value = patients.uniq! unless patients.blank?
+  end
+
   def new_non_preg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
     start_date = @@start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-        
+    
+    pregnant_women = new_patient_pregnant(start_date, end_date)
+
     all_women = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               WHERE ftc.earliest_start_date >= '#{start_date}'
                                               AND ftc.earliest_start_date <= '#{end_date}'
                                               AND ftc.gender = 'Female'
                                               GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-
+=begin
     pregnant_women = FlatCohortTable.find_by_sql("SELECT ft2.patient_id
                        FROM flat_table2 ft2
                         INNER join flat_table1 ftc ON ftc.patient_id = ft2.patient_id 
-                        INNER JOIN encounter e on e.encounter_id = ft2.pregnant_yes_enc_id and e.voided = 0 and e.encounter_type IN (52, 53)
+                        INNER JOIN encounter e on e.encounter_id = ft2.pregnant_yes_enc_id and e.voided = 0
+                         AND e.encounter_type IN (52, 53)
                       WHERE  (e.encounter_datetime >= '#{start_date}' AND  e.encounter_datetime <= '#{end_date}')
                         AND (ftc.earliest_start_date >= '#{start_date}' AND ftc.earliest_start_date <= '#{end_date}')
                         AND DATEDIFF(ft2.visit_date, ftc.earliest_start_date) <= 30
                         AND DATEDIFF(ft2.visit_date, ftc.earliest_start_date) > -1
                         AND ft2.pregnant_yes = 'Yes' OR ftc.pregnant_yes = 'Yes'
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
-   
+=end
     patients = all_women - pregnant_women
+
     value = patients unless patients.blank?
     render :text => value.to_json
   end
 
-  def cum_non_preg(start_date=Time.now, end_date=Time.now, section=nil)
+  def cum_patient_pregnant(start_date, end_date=Time.now, section=nil)
     value = []
-#state
+    patients = []
+
+    #start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
+    patients = FlatCohortTable.find_by_sql("SELECT 
+                                      ft2.patient_id
+                                  FROM
+                                      flat_table1 ft2
+                                          INNER join
+                                      flat_table1 ftc ON ftc.patient_id = ft2.patient_id
+                                          INNER JOIN
+                                      encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
+                                          and e.voided = 0
+                                          AND e.encounter_type IN (52)
+                                  WHERE
+                                      e.encounter_datetime <= '#{end_date}'
+                                          AND ftc.earliest_start_date <= '#{end_date}'
+                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                              ftc.earliest_start_date) <= 30
+                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                              ftc.earliest_start_date) > - 1
+                                          AND ft2.pregnant_yes = 'Yes'
+                                  GROUP BY ft2.patient_id
+                                  UNION ALL
+                                  SELECT 
+                                      ft2.patient_id
+                                  FROM
+                                      flat_table2 ft2
+                                          INNER join
+                                      flat_table1 ftc ON ftc.patient_id = ft2.patient_id
+                                          INNER JOIN
+                                      encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
+                                          and e.voided = 0
+                                          AND e.encounter_type IN (53)
+                                  WHERE
+                                           e.encounter_datetime <= '#{end_date}'
+                                          AND ftc.earliest_start_date <= '#{end_date}'
+                                          AND DATEDIFF(ft2.visit_date,
+                                              ftc.earliest_start_date) <= 30
+                                          AND DATEDIFF(ft2.visit_date,
+                                              ftc.earliest_start_date) > - 1
+                                          AND ft2.pregnant_yes = 'Yes'
+                                  GROUP BY ft2.patient_id").map(&:patient_id) 
+
+    value = patients.uniq! unless patients.blank?
+  end
+
+  def cum_non_preg(start_date=Time.now, end_date=Time.now, section=nil)
+    value = []
+
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    
+    pregnant_women = cum_patient_pregnant(start_date, end_date)
+    
     all_women = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               WHERE ftc.earliest_start_date <= '#{end_date}'
                                               AND ftc.gender = 'Female'
                                               GROUP BY ftc.patient_id").collect{|p| p.patient_id}
-
+=begin
     pregnant_women = FlatCohortTable.find_by_sql("SELECT ft2.patient_id
                        FROM flat_table2 ft2
                         INNER join flat_table1 ftc ON ftc.patient_id = ft2.patient_id and ftc.earliest_start_date <= '#{end_date}'
@@ -449,9 +552,11 @@ class CohortController < ActionController::Base
                         AND DATEDIFF(ft2.visit_date, ftc.earliest_start_date) > -1
                         AND ft2.pregnant_yes = 'Yes' OR ftc.pregnant_yes = 'Yes'
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
-
+=end
     patients = all_women - pregnant_women
+
     value = patients unless patients.blank?
+
     render :text => value.to_json
   end
 
@@ -460,7 +565,7 @@ class CohortController < ActionController::Base
 
     start_date = @@start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-
+=begin
     pregnant_women = FlatCohortTable.find_by_sql("SELECT ft2.patient_id
                        FROM flat_table2 ft2
                         INNER join flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id 
@@ -471,6 +576,8 @@ class CohortController < ActionController::Base
                         AND DATEDIFF(ft2.visit_date, ftc.earliest_start_date) > -1
                         AND ft2.pregnant_yes = 'Yes'
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
+=end
+    pregnant_women = new_patient_pregnant(start_date, end_date)
 
     value = pregnant_women unless pregnant_women.blank?
     render :text => value.to_json
@@ -480,7 +587,7 @@ class CohortController < ActionController::Base
     value = []
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-
+=begin
     pregnant_women = FlatCohortTable.find_by_sql("SELECT ft2.patient_id
                        FROM flat_table2 ft2
                         INNER join flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id and ftc.earliest_start_date <= '#{end_date}'
@@ -490,7 +597,9 @@ class CohortController < ActionController::Base
                         AND DATEDIFF(ft2.visit_date, ftc.earliest_start_date) > -1
                         AND ft2.pregnant_yes = 'Yes'
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
-  
+=end
+    pregnant_women = cum_patient_pregnant(start_date, end_date)
+      
     value = pregnant_women unless pregnant_women.blank?
     render :text => value.to_json
   end
@@ -501,14 +610,13 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')                        
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,
-                   age_in_months(ftc.birthdate, ftc.earliest_start_date) AS months,
-                   DATEDIFF(ftc.earliest_start_date, ftc.birthdate) AS days
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
                 FROM flat_cohort_table ftc 
-                WHERE ftc.earliest_start_date >= '#{start_date}'
+                WHERE ftc.earliest_start_date >= '#{start_date}' 
                 AND ftc.earliest_start_date <= '#{end_date}'
-                GROUP BY ftc.patient_id
-                HAVING days BETWEEN 0 AND 731").collect{|p| p.patient_id}
+                AND ftc.age_at_initiation >= 0
+				        AND ftc.age_at_initiation < 2
+                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
   end
@@ -518,13 +626,12 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,
-                   age_in_months(ftc.birthdate, ftc.earliest_start_date) AS months,
-                   DATEDIFF(ftc.earliest_start_date, ftc.birthdate) AS days
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date <= '#{end_date}'
-                GROUP BY ftc.patient_id
-                HAVING days BETWEEN 0 AND 731").collect{|p| p.patient_id}
+                AND ftc.age_at_initiation >= 0
+				        AND ftc.age_at_initiation < 2
+                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
   end
@@ -558,14 +665,13 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,
-                   age_in_months(ftc.birthdate, ftc.earliest_start_date) AS months,
-                   DATEDIFF(ftc.earliest_start_date, ftc.birthdate) AS days
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
                 FROM flat_cohort_table ftc 
-                WHERE ftc.earliest_start_date >= '#{start_date}'
+                WHERE ftc.earliest_start_date >= '#{start_date}' 
                 AND ftc.earliest_start_date <= '#{end_date}'
-                GROUP BY ftc.patient_id
-                HAVING days BETWEEN 731 AND 5479").collect{|p| p.patient_id}
+                AND ftc.age_at_initiation >= 2
+				        AND ftc.age_at_initiation < 15
+                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
     value = patients unless patients.blank?
   end
 
@@ -574,13 +680,12 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,
-                   age_in_months(ftc.birthdate, ftc.earliest_start_date) AS months,
-                   DATEDIFF(ftc.earliest_start_date, ftc.birthdate) AS days
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date <= '#{end_date}'
-                GROUP BY ftc.patient_id
-                HAVING days BETWEEN 731 AND 5479").collect{|p| p.patient_id}   
+                AND ftc.age_at_initiation >= 2
+				        AND ftc.age_at_initiation < 15
+                GROUP BY ftc.patient_id").collect{|p| p.patient_id}   
 
     value = patients unless patients.blank?
   end
@@ -614,14 +719,13 @@ class CohortController < ActionController::Base
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,
-                   age_in_months(ftc.birthdate, ftc.earliest_start_date) AS months,
-                   DATEDIFF(ftc.earliest_start_date, ftc.birthdate) AS days
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
                 FROM flat_cohort_table ftc 
-                WHERE ftc.earliest_start_date >= '#{start_date}'
+                WHERE ftc.earliest_start_date >= '#{start_date}' 
                 AND ftc.earliest_start_date <= '#{end_date}'
-                GROUP BY ftc.patient_id
-                HAVING days BETWEEN 5479 AND 109500").collect{|p| p.patient_id}
+                AND ftc.age_at_initiation >= 15
+				        AND ftc.age_at_initiation < 1000
+                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
   end
@@ -631,13 +735,12 @@ class CohortController < ActionController::Base
 
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,
-                   age_in_months(ftc.birthdate, ftc.earliest_start_date) AS months,
-                   DATEDIFF(ftc.earliest_start_date, ftc.birthdate) AS days
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id,ftc.earliest_start_date, ftc.age_at_initiation
                 FROM flat_cohort_table ftc 
                 WHERE ftc.earliest_start_date <= '#{end_date}'
-                GROUP BY ftc.patient_id
-                HAVING days BETWEEN 5479 AND 109500").collect{|p| p.patient_id}
+                AND ftc.age_at_initiation >= 15
+				        AND ftc.age_at_initiation < 1000
+                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
   end
@@ -1079,7 +1182,7 @@ class CohortController < ActionController::Base
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND (ft1.pulmonary_tuberculosis = 'Yes' OR
                                                  ft1.extrapulmonary_tuberculosis = 'Yes' OR
-                                                 OR ft1.who_stages_criteria_present IN ('Pulmonary tuberculosis (current)','Extrapulmonary tuberculosis'))
+                                                 ft1.who_stages_criteria_present IN ('Extrapulmonary tuberculosis (EPTB)', 'Pulmonary tuberculosis', 'Pulmonary tuberculosis (current)'))
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1095,7 +1198,7 @@ class CohortController < ActionController::Base
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND (ft1.pulmonary_tuberculosis = 'Yes' OR
                                                  ft1.extrapulmonary_tuberculosis = 'Yes' OR
-                                                 OR ft1.who_stages_criteria_present IN ('Pulmonary tuberculosis (current)','Extrapulmonary tuberculosis'))
+                                                 ft1.who_stages_criteria_present IN ('Extrapulmonary tuberculosis (EPTB)', 'Pulmonary tuberculosis', 'Pulmonary tuberculosis (current)'))
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1154,18 +1257,16 @@ class CohortController < ActionController::Base
 
   def new_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    @new_total_patients_reg = []
-    @new_total_tb_w2yrs_pat_ids = []
-    @new_total_current_tb_pat_ids = []
+    patients = []
 
     start_date = @@start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-
-    @new_total_patients_reg = new_total_patients_reg(start_date,end_date)
-    @new_total_tb_w2yrs_pat_ids = new_total_tb_w2yrs(start_date,end_date)
-    @new_total_current_tb_pat_ids = new_total_current_tb(start_date,end_date)
-
-    patients = (@new_total_patients_reg.to_a - (@new_total_tb_w2yrs_pat_ids.to_a + @new_total_current_tb_pat_ids.to_a))
+    
+    @total_patients_reg = new_total_patients_reg(start_date,end_date)
+    @total_tb_w2yrs = new_total_tb_w2yrs(start_date,end_date)
+    @total_current_tb = new_total_current_tb(start_date,end_date)
+    
+    patients = (@total_patients_reg.to_a - (@total_tb_w2yrs.to_a + @total_current_tb.to_a))
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -1173,17 +1274,15 @@ class CohortController < ActionController::Base
 
   def cum_no_tb(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
-    cum_total_patients_reg = []
-    cum_total_tb_w2yrs_pat_ids = []
-    cum_total_current_tb_pat_ids = []
+    patients = []
 
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
-    cum_total_patients_reg = cum_total_patients_reg(nil,end_date)
-    cum_total_tb_w2yrs_pat_ids = cum_total_tb_w2yrs(nil,end_date)
-    cum_total_current_tb_pat_ids = cum_total_current_tb(nil,end_date)
+    @cum_patients_reg = cum_total_patients_reg(@@first_registration_date,end_date)
+    @cum_tb_w2yrs = cum_total_tb_w2yrs(@@first_registration_date,end_date)
+    @cum_current_tb = cum_total_current_tb(@@first_registration_date,end_date)
 
-    patients = (cum_total_patients_reg.to_a - (cum_total_tb_w2yrs_pat_ids.to_a + cum_total_current_tb_pat_ids.to_a))
+    patients = (@cum_patients_reg.to_a - (@cum_tb_w2yrs.to_a + @cum_current_tb.to_a))
 
     value = patients unless patients.blank?
     render :text => value.to_json
@@ -2448,6 +2547,10 @@ class CohortController < ActionController::Base
         drug_induced_skin_rash(start_date, end_date, params["field"])
       when "drug_induced_jaundice"
         drug_induced_jaundice(start_date, end_date, params["field"])
+      when "new_patient_pregnant"
+        new_patient_pregnant(start_date, end_date, params["field"])      
+      when "cum_patient_pregnant"
+        cum_patient_pregnant(start_date, end_date, params["field"])      
       else
         reply(params["field"])
       end
