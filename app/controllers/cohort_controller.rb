@@ -17,6 +17,7 @@ class CohortController < ActionController::Base
 	end
 
   def index
+
   end
 
   def select_date
@@ -38,7 +39,12 @@ class CohortController < ActionController::Base
   end
 
   def current_site
-    render :text => "Test Site"
+    current_site = ""
+    current_site = FlatCohortTable.find_by_sql("SELECT current_location
+                                                FROM flat_cohort_table
+                                                LIMIT 1").map(&:current_location).first
+
+    render :text => current_site
   end
 
   def quarter(start_date=Time.now.strftime("%Y-%m-%d"), end_date=Time.now.strftime("%Y-%m-%d"), section=nil)
