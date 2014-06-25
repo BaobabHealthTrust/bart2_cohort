@@ -111,6 +111,7 @@
             <option></option>
             <option>Quarter</option>
             <option>Custom Date Range</option>
+            <option>Survival Analysis</option>
           </select>
 
           <select id="year" name="year" helpText="Year" condition="__$('cohort_type').value == 'Quarter'"
@@ -133,6 +134,16 @@
             <option value="2">Q2 (<%= Date.today.year %>)</option>
             <option value="1">Q1 (<%= Date.today.year %>)</option>
           </select>
+
+          <select name="quarter" id="quarter" helpText="Select Quarter"
+                  condition="__$('cohort_type').value == 'Survival Analysis'" tt_beforeUnLoad="checkQuarter()">
+            <option></option>
+            <option value="4">Q4 (<%= Date.today.year %>)</option>
+            <option value="3">Q3 (<%= Date.today.year %>)</option>
+            <option value="2">Q2 (<%= Date.today.year %>)</option>
+            <option value="1">Q1 (<%= Date.today.year %>)</option>
+          </select>
+
 
           <input type="text" field_type="date" id="start_date" name="start_date"
                  value="<%= Date.today.strftime("%Y-%m-%d") %>" helpText="Select Start Date"

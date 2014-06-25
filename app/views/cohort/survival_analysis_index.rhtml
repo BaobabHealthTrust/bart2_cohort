@@ -1,0 +1,383 @@
+<html>
+  <head>
+    <title>Cohort Report</title>
+    <style type="text/css">
+      body {
+        font-family: verdana;
+        -moz-user-select: none;
+      }
+      .normalcell {
+        border: 1px solid #ccc;
+      }
+      .header {
+        font-size: 28px;
+      }
+      .heading {
+        border: 1px solid #ccc;
+        font-weight: bold;
+        font-size: 18px;
+        color: #6281A7;
+      }
+      .num {
+        text-align: center;
+        min-width: 70px;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="report" width="100%" cellspacing="2" cellpadding="5">
+      <tr>
+        <th style="background-color: #ccc;">
+          &nbsp;
+        </th>
+        <th colspan="2" class="header" style="background-color: #6281A7;
+            padding: 10px; color: #fff; font-weight: normal;">
+          <span id="qtr">{quarter}</span> Survival Analysis
+        </th>
+      </tr>
+
+      <tr>
+        <th style="background-color: #ccc;">
+          &nbsp;
+        </th>
+        <td class="heading" style="border-right: hidden; color: #6281A7; width: 60%;">
+          12 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>
+        </td>
+        <th class="normalcell" style="border-left: hidden;">
+          &nbsp;
+        </th>
+
+      </tr>
+
+    </table>
+
+    <script type="text/javascript">
+      <!--
+
+      // [
+      //   0:   position label (col #0),
+      //   1:   label col 1 (col #1),
+      //   2:   column count,
+      //   3:   for 2 columns cases, second column label: heading type (col #2),
+      //   4:   for regular columns, col 2 label (col #2),
+      //   5:   col 3 label (col #3),
+      //   6:   col 4 label/value (col #4),
+      //   7:   rowspan,
+      //   8:   field id for col #2,
+      //   9:   ajaxUrl link for col #2,
+      //   10:  field id for col #3,
+      //   11:  ajaxUrl link for col #3,
+      //   12:  field id for col #4,
+      //   13:  ajaxUrl link for col #4
+      // ]
+      var fields = [
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=12&cat=generic"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=12&cat=generic"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=12&cat=generic"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=12&cat=generic"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=12&cat=generic"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=12&cat=generic"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=12&cat=generic"],
+             
+        ["&nbsp;", "24 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=24&cat=generic"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=24&cat=generic"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=12&cat=generic"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=12&cat=generic"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=24&cat=generic"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=24&cat=generic"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=24&cat=generic"],
+             
+        ["&nbsp;", "36 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=36&cat=generic"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=36&cat=generic"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=36&cat=generic"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=36&cat=generic"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=36&cat=generic"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=36&cat=generic"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=36&cat=generic"],
+       
+        ["&nbsp;", "48 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=48&cat=generic"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=48&cat=generic"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=48&cat=generic"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=48&cat=generic"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=48&cat=generic"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=48&cat=generic"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=48&cat=generic"],
+        
+        ["&nbsp;", "60 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=60&cat=generic"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=60&cat=generic"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=60&cat=generic"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=60&cat=generic"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=60&cat=generic"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=60&cat=generic"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=60&cat=generic"],
+       
+        ["&nbsp;", "72 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=72&cat=generic"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=72&cat=generic"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=72&cat=generic"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=72&cat=generic"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=72&cat=generic"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=72&cat=generic"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=72&cat=generic"],
+                
+        ["&nbsp;", "80 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=80&cat=generic"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=80&cat=generic"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=80&cat=generic"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=80&cat=generic"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=80&cat=generic"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=80&cat=generic"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=80&cat=generic"],
+        
+        ["&nbsp;", "&nbsp;", 1],
+        ["&nbsp;", "<span style='font-size: 26px;'>Children Survival Analysis</span>", 1, "&nbsp"],       
+        ["&nbsp;", "12 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=12&cat=children"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=12&cat=children"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=12&cat=children"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=12&cat=children"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=12&cat=children"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=12&cat=children"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=12&cat=children"],
+
+        ["&nbsp;", "24 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=24&cat=children"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=24&cat=children"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=24&cat=children"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=24&cat=children"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=24&cat=children"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=24&cat=children"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=24&cat=children"],
+
+        ["&nbsp;", "36 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=36&cat=children"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=36&cat=children"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=36&cat=children"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=36&cat=children"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=36&cat=children"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=36&cat=children"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=36&cat=children"],
+
+        ["&nbsp;", "48 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=48&cat=children"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=48&cat=children"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=48&cat=children"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=48&cat=children"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=48&cat=children"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=48&cat=children"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=48&cat=children"],
+
+        ["&nbsp;", "60 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=60&cat=children"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=60&cat=children"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=60&cat=children"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=60&cat=children"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=60&cat=children"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=60&cat=children"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=60&cat=children"],
+
+        ["&nbsp;", "&nbsp;", 1],
+        ["&nbsp;", "<span style='font-size: 26px;'>Pregnant and Breastfeeding Women Survival Analysis</span>", 1, "&nbsp"],
+        ["&nbsp;", "6 month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
+        ["&nbsp;","New patients registered for ART between ? and ?", 3,,,,,,"new_reg", "/field?field=new_reg&months=6&cat=children"],
+        ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/field?field=on_art&months=6&cat=children"],
+        ["&nbsp;","Number Dead", 3,,,,,,"dead", "/field?field=dead&months=6&cat=children"],
+        ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/field?field=defaulter&months=6&cat=children"],
+        ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/field?field=art_stop&months=6&cat=children"],
+        ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/field?field=transfer_out&months=6&cat=children"],
+        ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/field?field=unknown&months=6&cat=children"],
+      ];
+
+      function __$(id){
+        return document.getElementById(id);
+      }
+
+      function createTable(){
+        for(var i = 0; i < fields.length; i++){
+          var row = document.createElement("tr");
+
+          __$("report").getElementsByTagName("tbody")[0].appendChild(row);
+
+          var cell0 = document.createElement("td");
+          cell0.innerHTML = fields[i][0];
+          cell0.style.textAlign = "right";
+          cell0.style.color = "#fff";
+          cell0.style.backgroundColor = (String(fields[i][0]).trim() != "&nbsp;" ? "#6281A7" : "#ccc");
+          cell0.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+
+          if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
+            row.appendChild(cell0);
+          } else if(typeof(fields[i][7]) == "undefined"){
+            row.appendChild(cell0);
+          }
+
+          var cell1 = document.createElement("td");
+          cell1.innerHTML = fields[i][1];
+          cell1.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+            "heading" : "normalcell");
+          cell1.colSpan = (fields[i][2] == 1 ? 2 : (fields[i][2] == 2 ? 2 : 1));
+          cell1.rowSpan = (fields[i][7] != "undefined" && fields[i][7] != 0 ? fields[i][7] : 1);
+
+          if(typeof(fields[i][7]) != "undefined" && fields[i][7] != 0){
+            row.appendChild(cell1);
+          } else if(typeof(fields[i][7]) == "undefined"){
+            row.appendChild(cell1);
+          }
+
+          if(fields[i][2] == 1){
+            continue;
+          }
+
+          var cell2 = document.createElement("td");
+          cell2.innerHTML = (fields[i][2] == 2 ? (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+            fields[i][3] : "&nbsp;") : (typeof(fields[i][4]) != "undefined" ? fields[i][4] : "&nbsp;"));
+
+          cell2.className = (typeof(fields[i][3]) != "undefined" && fields[i][3] != null ?
+            "heading" : "normalcell");
+          cell2.colSpan = (fields[i][2] == 2 ? 2 : 1);
+
+          if(typeof(fields[i][8]) != "undefined"){
+            cell2.id = fields[i][8];
+            cell2.className = "num normalcell";
+          }
+
+          row.appendChild(cell2);
+
+          if(fields[i][2] == 2){
+            continue;
+          }
+
+        }
+      }
+
+
+      function ajaxRequest(aElement, aUrl) {
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.onreadystatechange = function() {
+          handleResult(aElement, httpRequest);
+        };
+        try {
+          httpRequest.open('GET', aUrl, true);
+          httpRequest.send(null);
+        } catch(e){
+        }
+      }
+
+      function handleResult(element, aXMLHttpRequest) {
+        if (!aXMLHttpRequest) return;
+
+        if (!element) return;
+
+        if (aXMLHttpRequest.readyState == 4 && aXMLHttpRequest.status == 200) {
+          var result = aXMLHttpRequest.responseText;
+
+          if(__$(element)){
+
+            if(result.match(/\[/)){
+              var json = JSON.parse(result);
+
+              __$(element).innerHTML = "";
+              __$(element).style.padding = "0px";
+
+              if(json.length > 0){
+                __$(element).style.verticalAlign = "middle";
+
+                var frm = document.createElement("form");
+                frm.setAttribute("action", "/cohort/drill_down");
+                frm.setAttribute("method", "post");
+                frm.setAttribute("target", "_parent");
+                frm.style.padding = "0px";
+                frm.style.margin = "0px";
+
+                __$(element).appendChild(frm);
+
+                var startdate = document.createElement("input");
+                startdate.name = "start_date";
+                startdate.type = "hidden";
+                startdate.value = "<%= params[:start_date] %>"
+
+                frm.appendChild(startdate);
+
+                var enddate = document.createElement("input");
+                enddate.name = "end_date";
+                enddate.type = "hidden";
+                enddate.value = "<%= params[:end_date] %>"
+
+                frm.appendChild(enddate);
+
+                var textarea = document.createElement("textarea");
+                textarea.name = "field";
+                textarea.style.display = "none";
+                textarea.innerHTML = "00";
+                textarea.style.margin = "0px";
+
+                for(var j = 0; j < json.length; j++){
+                  textarea.innerHTML += json[j] + ","
+                }
+
+                textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
+
+                frm.appendChild(textarea);
+
+                var button = document.createElement("input");
+                button.type = "submit";
+                button.value = json.length;
+                button.style.margin = "0px";
+                button.style.color = "#000";
+                button.style.width = "100%";
+                button.style.border = "0px solid #fff";
+                button.style.backgroundColor = "#fff";
+                button.style.cursor = "pointer";
+
+                frm.appendChild(button);
+
+              } else {
+                __$(element).innerHTML = json.length;
+              }
+            } else {
+              __$(element).innerHTML = result;
+            }
+          }
+        }
+      }
+
+      function loadFields(){
+        ajaxRequest("site", "/field?field=current_site");
+
+        var start_date = null, end_date = null;
+
+        var path = window.location.href.match(/\?(.+)$/);
+
+        var start = path[1].match(/start_date=\d{4}-\d{2}-\d{2}/);
+
+        var end = path[1].match(/end_date=\d{4}-\d{2}-\d{2}/);
+
+        if(start != null){
+          start_date = start[0].split("=")[1];
+        }
+
+        if(end != null){
+          end_date = end[0].split("=")[1];
+        }
+
+        ajaxRequest("qtr", "/field?field=quarter&start_date=" +
+          start_date + "&end_date=" + end_date);
+
+        for(var i = 0; i < fields.length; i++){
+          if(typeof(fields[i][8]) != "undefined"){
+            ajaxRequest(fields[i][8], fields[i][9] + "&start_date=" +
+              start_date + "&end_date=" + end_date);
+          }          
+        }
+      }
+
+      createTable();
+      loadFields();
+      //-->
+    </script>
+  </body>
+</html>

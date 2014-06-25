@@ -24,10 +24,12 @@ class CohortController < ActionController::Base
   end
 
   def cohort 
-   
-
+  
+    if params[:cohort_type] == "Survival Analysis"
+      render :template => "/cohort/survival_analysis"
+    end
   end
-
+  
   def mastercard
   end
 
@@ -37,7 +39,6 @@ class CohortController < ActionController::Base
       [p.person_id, (p.names.first.given_name rescue "&nbsp;"),
         (p.names.first.family_name rescue "&nbsp;"), (p.birthdate rescue "&nbsp;"), p.gender]
     }
-
   end
 
   def current_site
@@ -74,24 +75,24 @@ class CohortController < ActionController::Base
     render :text => retstr
   end
 
- def art_defaulters#(start_date=Time.now, end_date=Time.now, section=nil)
-  end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-  @defaulters = []
+  def art_defaulters#(start_date=Time.now, end_date=Time.now, section=nil)
+    end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    @defaulters = []
   
-  if @defaulters.blank?
+    if @defaulters.blank?
 
-    patients = FlatCohortTable.find_by_sql("SELECT patient_id
+      patients = FlatCohortTable.find_by_sql("SELECT patient_id
                                             FROM flat_cohort_table
                                             WHERE hiv_program_state = 'Defaulter'
                                             AND hiv_program_start_date <= '#{end_date}'
                                             AND current_state_for_program(patient_id, 1, '#{end_date}') NOT IN (6, 2, 3)").map(&:patient_id)
 
-		@defaulters = patients
-	else
-	  patients = @defaulters
-	end
+      @defaulters = patients
+    else
+      patients = @defaulters
+    end
 
- end
+  end
  
   def total_alive_and_on_art(defaulted_patients)
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
@@ -103,7 +104,7 @@ class CohortController < ActionController::Base
     defaulters = defaulted_patients.join(',') if !defaulted_patients.blank?
 
 		if @@total_alive_and_on_art.blank?
-        patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id, 
+      patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
                       ft2.current_hiv_program_start_date, ft2.current_hiv_program_state
                     FROM flat_table2 ft2
 	                    INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
@@ -121,7 +122,7 @@ class CohortController < ActionController::Base
 			patients = @@total_alive_and_on_art
 		end
    
- end
+  end
 
   # Start Cohort queries
   def defaulted(start_date=Time.now, end_date=Time.now, section=nil)
@@ -916,7 +917,7 @@ class CohortController < ActionController::Base
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-5206
+    5206
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date >= '#{start_date}' 
@@ -2148,8 +2149,8 @@ class CohortController < ActionController::Base
                       AND ft2.what_was_the_patient_adherence_for_this_drug1 NOT BETWEEN 95 AND 105
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-      value = patients unless patients.blank?
-      #render :text => value.to_json
+    value = patients unless patients.blank?
+    #render :text => value.to_json
   end
 
   def missed_7plus_two(start_date=Time.now, end_date=Time.now, section=nil)
@@ -2172,8 +2173,8 @@ class CohortController < ActionController::Base
                       AND ft2.what_was_the_patient_adherence_for_this_drug2 NOT BETWEEN 95 AND 105
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-      value = patients unless patients.blank?
-      #render :text => value.to_json
+    value = patients unless patients.blank?
+    #render :text => value.to_json
   end
 
   def missed_7plus_three(start_date=Time.now, end_date=Time.now, section=nil)
@@ -2196,8 +2197,8 @@ class CohortController < ActionController::Base
                       AND ft2.what_was_the_patient_adherence_for_this_drug3 NOT BETWEEN 95 AND 105
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-      value = patients unless patients.blank?
-      #render :text => value.to_json
+    value = patients unless patients.blank?
+    #render :text => value.to_json
   end
 
   def missed_7plus_four(start_date=Time.now, end_date=Time.now, section=nil)
@@ -2220,8 +2221,8 @@ class CohortController < ActionController::Base
                       AND ft2.what_was_the_patient_adherence_for_this_drug4 NOT BETWEEN 95 AND 105
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-      value = patients unless patients.blank?
-      #render :text => value.to_json
+    value = patients unless patients.blank?
+    #render :text => value.to_json
   end
 
   def missed_7plus_five(start_date=Time.now, end_date=Time.now, section=nil)
@@ -2244,8 +2245,8 @@ class CohortController < ActionController::Base
                       AND ft2.what_was_the_patient_adherence_for_this_drug5 NOT BETWEEN 95 AND 105
                       GROUP BY ft2.patient_id").collect{|p| p.patient_id}
 
-      value = patients unless patients.blank?
-      #render :text => value.to_json
+    value = patients unless patients.blank?
+    #render :text => value.to_json
   end
 
   def missed_7plus(start_date=Time.now, end_date=Time.now, section=nil)
@@ -2358,7 +2359,7 @@ class CohortController < ActionController::Base
       when "defaulters"
         art_defaulters(start_date, end_date, params["field"])    
       when "total_alive_and_on_art"
-       total_alive_and_on_art(start_date, end_date, params["field"])
+        total_alive_and_on_art(start_date, end_date, params["field"])
       when "defaulted"
         defaulted(start_date, end_date, params["field"])    
       when "total_on_art"
