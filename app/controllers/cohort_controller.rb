@@ -26,7 +26,62 @@ class CohortController < ActionController::Base
   def cohort 
    
     if params[:cohort_type] == "Survival Analysis"
+     
       render :template => "/cohort/survival_analysis"
+    end
+  end
+
+  def survival_analysis_index
+
+    survival_start_date = params[:start_date].to_date
+    survival_end_date = params[:end_date].to_date
+
+    @date_ranges = Array.new
+    @children_date_ranges = Array.new
+    @pregnant_and_breastfeeding_date_ranges = Array.new
+    first_registration_date = @@first_registration_date
+
+    if first_registration_date.present?
+      while (survival_start_date -= 1.year) >= first_registration_date
+        
+        survival_end_date   -= 1.year
+        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date)
+        
+        break if quarter_registration.length == 0
+        @date_ranges << {:start_date => survival_start_date,
+          :end_date   => survival_end_date
+        }
+      end
+
+      survival_start_date = params[:start_date].to_date
+      survival_end_date = params[:end_date].to_date
+      while (survival_start_date -= 1.year) >= first_registration_date
+
+        survival_end_date   -= 1.year
+        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date, 0, 14)
+        break if quarter_registration.length == 0
+        @children_date_ranges << {:start_date => survival_start_date,
+          :end_date   => survival_end_date
+        }
+      end
+
+      if  params[:start_date].to_date - 6.months >= "01-07-2011".to_date
+        @pregnant_and_breastfeeding_date_ranges << {:start_date => params[:start_date].to_date - 6.months,
+          :end_date   => params[:end_date].to_date - 6.months
+        }
+      end
+      
+      survival_start_date = params[:start_date].to_date
+      survival_end_date = params[:end_date].to_date
+      while (survival_start_date -= 1.year) >= first_registration_date
+
+        survival_end_date   -= 1.year
+        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date)
+        break if quarter_registration.length == 0 ||  survival_start_date < "01-07-2011".to_date
+        @pregnant_and_breastfeeding_date_ranges << {:start_date => survival_start_date,
+          :end_date   => survival_end_date
+        }
+      end
     end
   end
   
@@ -156,7 +211,7 @@ class CohortController < ActionController::Base
   def new_total_patients_reg(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    start_date = @@start_date.to_date.strftime('%Y-%m-%d 00:00:00')  
+    start_date = @@start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     art_defaulters = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
@@ -165,6 +220,27 @@ class CohortController < ActionController::Base
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = art_defaulters unless art_defaulters.blank?
+  end
+
+  def new_total_patients_reg_with_age(start_date=Time.now, end_date=Time.now, min_age = 0, max_age = nil)
+    value = []
+
+    condition = ""
+    if !max_age.blank?
+      condition = "AND TRUNCATE(DATEDIFF(ftc.earliest_start_date, ftc.birthdate)/365, 3) >= #{min_age} AND
+      TRUNCATE(DATEDIFF(ftc.earliest_start_date, ftc.birthdate)/365, 0) <= #{max_age}"
+    end
+    
+    start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
+    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
+    
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
+                                            WHERE ftc.earliest_start_date >= '#{start_date}'
+                                            AND ftc.earliest_start_date <= '#{end_date}' #{condition}
+                                            GROUP BY ftc.patient_id").collect{|p| p.patient_id}
+
+    value = patients unless patients.blank?
+    value
   end
 
   def cum_total_patients_reg(start_date=Time.now, end_date=Time.now, section=nil)
@@ -450,6 +526,7 @@ class CohortController < ActionController::Base
                                   GROUP BY ft2.patient_id").map(&:patient_id)
 
     value = patients.uniq! unless patients.blank?
+    value
   end
 
   def new_non_preg(start_date=Time.now, end_date=Time.now, section=nil)
