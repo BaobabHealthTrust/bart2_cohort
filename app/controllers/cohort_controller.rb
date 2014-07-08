@@ -767,7 +767,8 @@ class CohortController < ActionController::Base
                                               LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date >= '#{start_date}'
                                             AND ftc.earliest_start_date <= '#{end_date}'
-                                            AND ft1.reason_for_eligibility LIKE '%Presumed%'
+                                            AND (ft1.reason_for_eligibility LIKE '%Presumed%'
+                                                 OR ft1.who_stages_criteria_present LIKE '%Presumed%')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -782,7 +783,7 @@ class CohortController < ActionController::Base
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
-                                            AND ft1.reason_for_eligibility LIKE '%Presumed%'
+                                            AND (ft1.reason_for_eligibility LIKE '%Presumed%')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -817,6 +818,8 @@ class CohortController < ActionController::Base
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND (ft1.reason_for_eligibility LIKE '%Confirmed%'
                                                 OR ft1.reason_for_eligibility LIKE '%HIV DNA%')
+                                            OR (ft1.who_stages_criteria_present LIKE '%Confirmed%'
+                                                OR ft1.who_stages_criteria_present LIKE '%HIV DNA%')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -872,7 +875,7 @@ class CohortController < ActionController::Base
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-5206
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                               LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date >= '#{start_date}' 
@@ -1000,7 +1003,7 @@ class CohortController < ActionController::Base
 
     start_date = start_date.to_date.strftime('%Y-%m-%d 00:00:00')
     end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')
-    
+
     patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc 
                                                LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date >= '#{start_date}' 
@@ -1104,7 +1107,7 @@ class CohortController < ActionController::Base
                                             WHERE ftc.earliest_start_date >= '#{start_date}' 
                                             AND ftc.earliest_start_date <= '#{end_date}'
                                             AND (ft1.pulmonary_tuberculosis_last_2_years = 'Yes' OR
-                                                 ft1.who_stages_criteria_present = 'pulmonary_tuberculosis_last_2_years')
+                                                 ft1.who_stages_criteria_present = 'Tuberculosis (PTB or EPTB) within the last 2 years')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
 
@@ -1120,7 +1123,7 @@ class CohortController < ActionController::Base
                                              LEFT OUTER JOIN flat_table1 ft1 ON ft1.patient_id = ftc.patient_id
                                             WHERE ftc.earliest_start_date <= '#{end_date}'
                                             AND (ft1.pulmonary_tuberculosis_last_2_years = 'Yes' OR
-                                                 ft1.who_stages_criteria_present = 'pulmonary_tuberculosis_last_2_years')
+                                                 ft1.who_stages_criteria_present = 'Tuberculosis (PTB or EPTB) within the last 2 years')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
