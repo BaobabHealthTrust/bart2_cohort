@@ -920,8 +920,8 @@ class CohortController < ActionController::Base
                                                 OR ft1.reason_for_eligibility LIKE '%CD4 COUNT <=%'
                                                 OR ft1.reason_for_eligibility LIKE '%WHO stage II peds%'
                                                 OR ft1.reason_for_eligibility LIKE '%WHO stage I peds%'
-                                                OR ft1.reason_for_eligibility LIKE '%WHO stage II adults%'
-                                                OR ft1.reason_for_eligibility LIKE '%WHO stage I adults%'
+                                                OR ft1.reason_for_eligibility LIKE '%WHO stage II adult%'
+                                                OR ft1.reason_for_eligibility LIKE '%WHO stage I adult%'
                                                 OR ft1.reason_for_eligibility LIKE '%Lymphocyte count below threshold%')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -941,8 +941,8 @@ class CohortController < ActionController::Base
                                                 OR ft1.reason_for_eligibility LIKE '%CD4 COUNT <=%'
                                                 OR ft1.reason_for_eligibility LIKE '%WHO stage II peds%'
                                                 OR ft1.reason_for_eligibility LIKE '%WHO stage I peds%'
-                                                OR ft1.reason_for_eligibility LIKE '%WHO stage II adults%'
-                                                OR ft1.reason_for_eligibility LIKE '%WHO stage I adults%'
+                                                OR ft1.reason_for_eligibility LIKE '%WHO stage II adult%'
+                                                OR ft1.reason_for_eligibility LIKE '%WHO stage I adult%'
                                                 OR ft1.reason_for_eligibility LIKE '%Lymphocyte count below threshold%')
                                             GROUP BY ftc.patient_id").collect{|p| p.patient_id}
 
@@ -1388,12 +1388,9 @@ class CohortController < ActionController::Base
                 FROM flat_table2 ft2
 	                INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                   INNER JOIN person p on p.person_id = ftc.patient_id AND p.voided = 0
-                WHERE ft2.visit_date = (SELECT max(DATE(encounter_datetime)) FROM encounter
-				                        WHERE patient_id = ftc.patient_id
-				                        AND voided = 0
-				                        AND encounter_datetime <= '#{end_date}')
-                AND ft2.current_hiv_program_state = 'Patient died'
+                WHERE ft2.current_hiv_program_state = 'Patient died'
                 AND ftc.earliest_start_date <= '#{end_date}'
+                GROUP BY ftc.patient_id
                 HAVING death_date_diff BETWEEN 0 AND 30.4375").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1412,12 +1409,9 @@ class CohortController < ActionController::Base
                 FROM flat_table2 ft2
 	                INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                   INNER JOIN person p on p.person_id = ftc.patient_id AND p.voided = 0
-                WHERE ft2.visit_date = (SELECT max(DATE(encounter_datetime)) FROM encounter
-				                        WHERE patient_id = ftc.patient_id
-				                        AND voided = 0
-				                        AND encounter_datetime <= '#{end_date}')
-				        AND ftc.earliest_start_date <= '#{end_date}'
-                AND ft2.current_hiv_program_state = 'Patient died'
+                WHERE ft2.current_hiv_program_state = 'Patient died'
+                AND ftc.earliest_start_date <= '#{end_date}'
+                GROUP BY ftc.patient_id
                 HAVING death_date_diff BETWEEN 30.4375 AND 60.875").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1436,12 +1430,9 @@ class CohortController < ActionController::Base
                 FROM flat_table2 ft2
 	                INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                   INNER JOIN person p on p.person_id = ftc.patient_id AND p.voided = 0
-                WHERE ft2.visit_date = (SELECT max(DATE(encounter_datetime)) FROM encounter
-				                        WHERE patient_id = ftc.patient_id
-				                        AND voided = 0
-				                        AND encounter_datetime <= '#{end_date}')
-				        AND ftc.earliest_start_date <= '#{end_date}'
-                AND ft2.current_hiv_program_state = 'Patient died'
+                WHERE ft2.current_hiv_program_state = 'Patient died'
+                AND ftc.earliest_start_date <= '#{end_date}'
+                GROUP BY ftc.patient_id
                 HAVING death_date_diff BETWEEN 60.875 AND 91.3125").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1460,12 +1451,9 @@ class CohortController < ActionController::Base
                 FROM flat_table2 ft2
 	                INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                   INNER JOIN person p on p.person_id = ftc.patient_id AND p.voided = 0
-                WHERE ft2.visit_date = (SELECT max(DATE(encounter_datetime)) FROM encounter
-				                        WHERE patient_id = ftc.patient_id
-				                        AND voided = 0
-				                        AND encounter_datetime <= '#{end_date}')
-				        AND ftc.earliest_start_date <= '#{end_date}'				                        
-                AND ft2.current_hiv_program_state = 'Patient died'
+                WHERE ft2.current_hiv_program_state = 'Patient died'
+                AND ftc.earliest_start_date <= '#{end_date}'
+                GROUP BY ftc.patient_id
                 HAVING death_date_diff BETWEEN 91.3125 AND 1000000").collect{|p| p.patient_id}
 
     value = patients unless patients.blank?
@@ -1484,12 +1472,9 @@ class CohortController < ActionController::Base
                 FROM flat_table2 ft2
 	                INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                   INNER JOIN person p on p.person_id = ftc.patient_id AND p.voided = 0
-                WHERE ft2.visit_date = (SELECT max(DATE(encounter_datetime)) FROM encounter
-				                        WHERE patient_id = ftc.patient_id
-				                        AND voided = 0
-				                        AND encounter_datetime <= '#{end_date}')
+                WHERE ft2.current_hiv_program_state = 'Patient died'
                 AND ftc.earliest_start_date <= '#{end_date}'
-                AND ft2.current_hiv_program_state = 'Patient died'").collect{|p| p.patient_id}
+                GROUP BY ftc.patient_id").collect{|p| p.patient_id}
          
     value = patients unless patients.blank?
   end
@@ -1497,9 +1482,9 @@ class CohortController < ActionController::Base
   def died_total(start_date=Time.now, end_date=Time.now, section=nil)
     value = []
 
-    end_date = end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
+    end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')                            
 
-    patients = total_patients_died(nil,end_date)
+    patients = total_patients_died(start_date,end_date)
 
     value = patients unless patients.blank?
     render :text => value.to_json
