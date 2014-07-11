@@ -75,39 +75,39 @@
       var fields = [
 <% @date_ranges.each_with_index do |range, i| %>
       ["&nbsp;", "<%= (i + 1)*12 %> month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
-      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/field?field=new_reg&cat=generic"],
-      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
-      ["&nbsp;","Number Dead", 3,,,,,,"dead", "cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
-      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
-      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
-      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
-      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/cohort/survival_analysis_field?field=new_reg&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Dead", 3,,,,,,"dead", "/cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
+      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=generic"],
 <%end%>
                
     ["&nbsp;", "&nbsp;", 1],
     ["&nbsp;", "<span style='font-size: 26px;'>Children Survival Analysis</span>", 1, "&nbsp"],
 <% @children_date_ranges.each_with_index do |range, i| %>
       ["&nbsp;", "<%= (i + 1)*12 %> month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
-      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/field?field=new_reg&cat=children"],
-      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
-      ["&nbsp;","Number Dead", 3,,,,,,"dead", "cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
-      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
-      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
-      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
-      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/cohort/survival_analysis_field?field=new_reg&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Dead", 3,,,,,,"dead", "/cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
+      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=children"],
 <%end%>
   
     ["&nbsp;", "&nbsp;", 1],
     ["&nbsp;", "<span style='font-size: 26px;'>Pregnant and Breastfeeding Women Survival Analysis</span>", 1, "&nbsp"],
 <% @pregnant_and_breastfeeding_date_ranges.each_with_index do |range, i| %>
       ["&nbsp;", "<%= i > 0 ? (i*12) : 6%> month survival: outcomes by the end of <%= params[:end_date].to_date.strftime("%B, %Y") %>", 1, "&nbsp;"],
-      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/field?field=new_reg&cat=pmtct"],
-      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
-      ["&nbsp;","Number Dead", 3,,,,,,"dead", "cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
-      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
-      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
-      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
-      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","New patients registered for ART between <%= range[:start_date].to_date.strftime("%B, %Y") %> and <%= range[:end_date].to_date.strftime("%B, %Y") %>", 3,,,,,,"new_reg", "/cohort/survival_analysis_field?field=new_reg&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Alive and on ART", 3,,,,,,"alive_and_on_art", "/cohort/survival_analysis_field?field=on_art&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Dead", 3,,,,,,"dead", "/cohort/survival_analysis_field?field=dead&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Defaulted", 3,,,,,,"defaulted", "/cohort/survival_analysis_field?field=defaulter&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Stopped Treatment", 3,,,,,,"stopped_treatment", "/cohort/survival_analysis_field?field=art_stop&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Transferred out", 3,,,,,,"transferred_out", "/cohort/survival_analysis_field?field=transfer_out&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
+      ["&nbsp;","Number Unknown", 3,,,,,,"unknown", "/cohort/survival_analysis_field?field=unknown&start=<%= range[:start_date] %>&end=<%= range[:end_date] %>&cat=pmtct"],
 <%end%>
     ["&nbsp;", "&nbsp;", 1],
   ];
@@ -161,7 +161,7 @@
       cell2.colSpan = (fields[i][2] == 2 ? 2 : 1);
 
       if(typeof(fields[i][8]) != "undefined"){
-        cell2.id = fields[i][8];
+        cell2.id = i + fields[i][8];
         cell2.className = "num normalcell";
       }
 
@@ -176,6 +176,7 @@
 
 
   function ajaxRequest(aElement, aUrl) {
+    
     var httpRequest = new XMLHttpRequest();
     httpRequest.onreadystatechange = function() {
       handleResult(aElement, httpRequest);
@@ -197,70 +198,65 @@
 
       if(__$(element)){
 
-        if(result.match(/\[/)){
-          var json = JSON.parse(result);
+        var json = JSON.parse(result);
+        __$(element).innerHTML = "";
+        __$(element).style.padding = "0px";
 
-          __$(element).innerHTML = "";
-          __$(element).style.padding = "0px";
+        if(json.length > 0){
+          __$(element).style.verticalAlign = "middle";
+          var frm = document.createElement("form");
+          frm.setAttribute("action", "/cohort/drill_down");
+          frm.setAttribute("method", "post");
+          frm.setAttribute("target", "_parent");
+          frm.style.padding = "0px";
+          frm.style.margin = "0px";
 
-          if(json.length > 0){
-            __$(element).style.verticalAlign = "middle";
+          __$(element).appendChild(frm);
 
-            var frm = document.createElement("form");
-            frm.setAttribute("action", "/cohort/drill_down");
-            frm.setAttribute("method", "post");
-            frm.setAttribute("target", "_parent");
-            frm.style.padding = "0px";
-            frm.style.margin = "0px";
+          var startdate = document.createElement("input");
+          startdate.name = "start_date";
+          startdate.type = "hidden";
+          startdate.value = "<%= params[:start_date] %>"
 
-            __$(element).appendChild(frm);
+          frm.appendChild(startdate);
 
-            var startdate = document.createElement("input");
-            startdate.name = "start_date";
-            startdate.type = "hidden";
-            startdate.value = "<%= params[:start_date] %>"
+          var enddate = document.createElement("input");
+          enddate.name = "end_date";
+          enddate.type = "hidden";
+          enddate.value = "<%= params[:end_date] %>"
 
-            frm.appendChild(startdate);
+          frm.appendChild(enddate);
 
-            var enddate = document.createElement("input");
-            enddate.name = "end_date";
-            enddate.type = "hidden";
-            enddate.value = "<%= params[:end_date] %>"
+          var textarea = document.createElement("textarea");
+          textarea.name = "field";
+          textarea.style.display = "none";
+          textarea.innerHTML = "00";
+          textarea.style.margin = "0px";
 
-            frm.appendChild(enddate);
-
-            var textarea = document.createElement("textarea");
-            textarea.name = "field";
-            textarea.style.display = "none";
-            textarea.innerHTML = "00";
-            textarea.style.margin = "0px";
-
-            for(var j = 0; j < json.length; j++){
-              textarea.innerHTML += json[j] + ","
-            }
-
-            textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
-
-            frm.appendChild(textarea);
-
-            var button = document.createElement("input");
-            button.type = "submit";
-            button.value = json.length;
-            button.style.margin = "0px";
-            button.style.color = "#000";
-            button.style.width = "100%";
-            button.style.border = "0px solid #fff";
-            button.style.backgroundColor = "#fff";
-            button.style.cursor = "pointer";
-
-            frm.appendChild(button);
-
-          } else {
-            __$(element).innerHTML = json.length;
+          for(var j = 0; j < json.length; j++){
+            textarea.innerHTML += json[j] + ","
           }
+
+          textarea.innerHTML = textarea.innerHTML.trim().substr(0, (textarea.innerHTML.trim().length - 1));
+
+          frm.appendChild(textarea);
+
+          var button = document.createElement("input");
+          button.type = "submit";
+          button.value = json.length;
+          button.style.margin = "0px";
+          button.style.color = "#000";
+          button.style.width = "100%";
+          button.style.border = "0px solid #fff";
+          button.style.backgroundColor = "#fff";
+          button.style.cursor = "pointer";
+
+          frm.appendChild(button);
+
         } else {
-          __$(element).innerHTML = result;
+          __$(element).innerHTML = json.length;
         }
+        
       }
     }
   }
@@ -269,7 +265,8 @@
    
     for(var i = 0; i < fields.length; i++){
       if(typeof(fields[i][8]) != "undefined"){
-       // ajaxRequest(fields[i][8], fields[i][9]);
+       
+        ajaxRequest((i + fields[i][8]), fields[i][9]);
       }
     }
   }

@@ -6,6 +6,8 @@ class CohortController < ActionController::Base
   @@start_date = nil
   @@end_date = nil
   @@regimens = nil
+  @@children_join = "AND TRUNCATE(DATEDIFF(ftc.earliest_start_date, ftc.birthdate)/365, 3) >= 0 AND
+      TRUNCATE(DATEDIFF(ftc.earliest_start_date, ftc.birthdate)/365, 0) <= 14"
 
   def initialize
 	
@@ -31,60 +33,6 @@ class CohortController < ActionController::Base
     end
   end
 
-  def survival_analysis_index
-
-    survival_start_date = params[:start_date].to_date
-    survival_end_date = params[:end_date].to_date
-
-    @date_ranges = Array.new
-    @children_date_ranges = Array.new
-    @pregnant_and_breastfeeding_date_ranges = Array.new
-    first_registration_date = @@first_registration_date
-
-    if first_registration_date.present?
-      while (survival_start_date -= 1.year) >= first_registration_date
-        
-        survival_end_date   -= 1.year
-        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date)
-        
-        break if quarter_registration.length == 0
-        @date_ranges << {:start_date => survival_start_date,
-          :end_date   => survival_end_date
-        }
-      end
-
-      survival_start_date = params[:start_date].to_date
-      survival_end_date = params[:end_date].to_date
-      while (survival_start_date -= 1.year) >= first_registration_date
-
-        survival_end_date   -= 1.year
-        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date, 0, 14)
-        break if quarter_registration.length == 0
-        @children_date_ranges << {:start_date => survival_start_date,
-          :end_date   => survival_end_date
-        }
-      end
-
-      if  params[:start_date].to_date - 6.months >= "01-07-2011".to_date
-        @pregnant_and_breastfeeding_date_ranges << {:start_date => params[:start_date].to_date - 6.months,
-          :end_date   => params[:end_date].to_date - 6.months
-        }
-      end
-      
-      survival_start_date = params[:start_date].to_date
-      survival_end_date = params[:end_date].to_date
-      while (survival_start_date -= 1.year) >= first_registration_date
-
-        survival_end_date   -= 1.year
-        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date)
-        break if quarter_registration.length == 0 ||  survival_start_date < "01-07-2011".to_date
-        @pregnant_and_breastfeeding_date_ranges << {:start_date => survival_start_date,
-          :end_date   => survival_end_date
-        }
-      end
-    end
-  end
-  
   def mastercard
   end
 
@@ -2650,4 +2598,228 @@ class CohortController < ActionController::Base
     end
   end
 
+  def survival_analysis_field
+    
+    @data = []
+    if params[:start] and params[:end] && params[:cat].match("generic")
+
+      @start_date =   params[:start]
+      @end_date   =   params[:end]
+      @data       =   eval("#{params[:field].strip}_#{params[:cat].strip}("+
+          "'#{params[:start].to_date.to_s} 00:00:00', "+
+          " '#{params[:end].to_date.to_s} 23:59:59')")
+    end
+    
+    render :text => @data.to_json
+  end
+
+  def new_reg_generic(start_date, end_date, join_string = "")
+   
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id FROM flat_cohort_table ftc
+                                            WHERE ftc.earliest_start_date >= '#{start_date}'
+                                            #{join_string}
+                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            GROUP BY ftc.patient_id").map(&:patient_id)
+    return patients
+  end
+
+  def on_art_generic(start_date, end_date, join_string = "")
+ 
+    defaulters = ([-1] + defaulter_generic(start_date, end_date, join_string)).join(",")
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
+                      ft2.current_hiv_program_start_date, ft2.current_hiv_program_state
+                    FROM flat_table2 ft2
+	                    INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
+                    WHERE ft2.visit_date = (SELECT max(DATE(encounter_datetime)) FROM encounter
+				                                WHERE patient_id = ftc.patient_id
+				                                AND voided = 0
+				                                AND encounter_datetime <= '#{end_date}')
+                    AND ft2.current_hiv_program_state = 'On antiretrovirals'
+                    #{join_string}
+                    AND ftc.earliest_start_date >= '#{start_date}'
+                    AND ftc.earliest_start_date <= '#{end_date}'
+                    AND ftc.patient_id NOT IN (#{defaulters})
+                    GROUP BY ft2.patient_id").map(&:patient_id)
+    return patients
+  end
+
+  def dead_generic(start_date, end_date, join_string = "")
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
+                       ft2.current_hiv_program_start_date,
+                       ft2.current_hiv_program_state                       
+                FROM flat_table2 ft2
+	                INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
+                  INNER JOIN person p on p.person_id = ftc.patient_id AND p.voided = 0
+                WHERE ft2.visit_date = (SELECT max(DATE(encounter_datetime)) FROM encounter
+				                        WHERE patient_id = ftc.patient_id
+				                        AND voided = 0
+				                        AND encounter_datetime <= '#{end_date}')
+                 AND ftc.earliest_start_date >= '#{start_date}'
+                 AND ftc.earliest_start_date <= '#{end_date}'
+                 #{join_string}
+                AND ft2.current_hiv_program_state = 'Patient died'").map(&:patient_id).uniq
+    return patients
+  end
+  
+  def defaulter_generic(start_date, end_date, join_string = "")
+
+    patients = FlatCohortTable.find_by_sql("SELECT ftc.patient_id
+                                      FROM flat_cohort_table ftc
+                                      WHERE ftc.hiv_program_state = 'Defaulter'
+                                            AND ftc.hiv_program_start_date <= '#{end_date}'
+                                            AND ftc.earliest_start_date >= '#{start_date}'
+                                            AND ftc.earliest_start_date <= '#{end_date}'
+                                            #{join_string}
+                                            AND current_state_for_program(patient_id, 1, '#{end_date}') NOT IN (6, 2, 3)").map(&:patient_id).uniq
+    return patients
+  end
+
+  def art_stop_generic(start_date, end_date, join_string = "")
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
+                                        ft2.visit_date,
+                                        ftc.earliest_start_date,
+                                        ft2.current_hiv_program_state
+                                    FROM flat_table2 ft2
+                                        INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
+                                    WHERE visit_date = (SELECT max(DATE(encounter_datetime)) from encounter
+                                        WHERE patient_id = ft2.patient_id
+                                        AND voided = 0
+                                        AND encounter_datetime <= '#{end_date}')
+                                    AND ftc.earliest_start_date >= '#{start_date}'
+                                    AND ftc.earliest_start_date <= '#{end_date}'
+                                    #{join_string}
+                                    AND ft2.current_hiv_program_state = 'Treatment stopped'").map(&:patient_id).uniq
+    return patients
+  end
+
+  def transfer_out_generic(start_date, end_date, join_string = "")
+
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
+                  ft2.visit_date,
+                  ft2.current_hiv_program_start_date,
+                  ftc.earliest_start_date,
+                  ft2.current_hiv_program_state
+                FROM flat_table2 ft2
+                    INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
+                WHERE visit_date = (SELECT max(DATE(encounter_datetime)) from encounter
+                                    WHERE patient_id = ft2.patient_id
+				                            AND voided = 0
+					                          AND encounter_datetime <= '#{end_date}')
+                AND ftc.earliest_start_date >= '#{start_date}'
+                AND ftc.earliest_start_date <= '#{end_date}'
+                #{join_string}
+                AND ft2.current_hiv_program_state IN ('Patient transferred out','Transferred internally', " +
+        "'Patient transferred (External facility)', 'Patient transferred (Within facility)')").map(&:patient_id).uniq
+    return patients
+  end
+
+  def unknown_generic(start_date, end_date)
+
+    patients = new_reg_generic(start_date, end_date) - (on_art_generic(start_date, end_date) +
+        dead_generic(start_date, end_date) + defaulter_generic(start_date, end_date) + 
+        art_stop_generic(start_date, end_date) + transfer_out_generic(start_date, end_date))
+    return patients
+  end
+
+  def new_reg_children(start_date, end_date)
+
+    patients = new_reg_generic(start_date, end_date, @@children_join)
+    return patients
+  end
+
+  def on_art_children(start_date, end_date)
+
+    patients = on_art_generic(start_date, end_date,@@children_join)
+    return patients
+  end
+
+  def dead_children(start_date, end_date)
+
+    patients = dead_generic(start_date, end_date, @@children_join)
+    return patients
+  end
+
+  def defaulter_children(start_date, end_date)
+
+    patients = defaulter_generic(start_date, end_date, @@children_join)
+    return patients
+  end
+
+  def art_stop_children(start_date, end_date)
+
+    patients = art_stop_generic(start_date, end_date, @@children_join)
+    return patients
+  end
+
+  def transfer_out_children(start_date, end_date)
+
+    patients = transfer_out_generic(start_date, end_date, @@children_join)
+    return patients
+  end
+
+  def unknown_children(start_date, end_date)
+
+    patients = new_reg_children(start_date, end_date) - (on_art_children(start_date, end_date) +
+        dead_children(start_date, end_date) + defaulter_children(start_date, end_date) +
+        art_stop_children(start_date, end_date) + transfer_out_children(start_date, end_date))
+    return patients
+  end
+
+  def survival_analysis_index
+    params[:start_date] = params[:start_date].to_date - 2.years
+    params[:end_date] = params[:end_date].to_date - 2.years
+    survival_start_date = params[:start_date].to_date
+    survival_end_date = params[:end_date].to_date
+
+    @date_ranges = Array.new
+    @children_date_ranges = Array.new
+    @pregnant_and_breastfeeding_date_ranges = Array.new
+    first_registration_date = @@first_registration_date
+
+    if first_registration_date.present?
+      while (survival_start_date -= 1.year) >= first_registration_date
+
+        survival_end_date   -= 1.year
+        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date)
+
+        break if quarter_registration.length == 0
+        @date_ranges << {:start_date => survival_start_date,
+          :end_date   => survival_end_date
+        }
+      end
+
+      survival_start_date = params[:start_date].to_date
+      survival_end_date = params[:end_date].to_date
+      while (survival_start_date -= 1.year) >= first_registration_date
+
+        survival_end_date   -= 1.year
+        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date, 0, 14)
+        break if quarter_registration.length == 0
+        @children_date_ranges << {:start_date => survival_start_date,
+          :end_date   => survival_end_date
+        }
+      end
+
+      if  params[:start_date].to_date - 6.months >= "01-07-2011".to_date  #01-07-2011 is when PMTCT started in malawi.
+        @pregnant_and_breastfeeding_date_ranges << {:start_date => params[:start_date].to_date - 6.months,
+          :end_date   => params[:end_date].to_date - 6.months
+        }
+      end
+
+      survival_start_date = params[:start_date].to_date
+      survival_end_date = params[:end_date].to_date
+      while (survival_start_date -= 1.year) >= first_registration_date
+
+        survival_end_date   -= 1.year
+        quarter_registration = new_total_patients_reg_with_age(survival_start_date, survival_end_date)
+        break if quarter_registration.length == 0 ||  survival_start_date < "01-07-2011".to_date
+        @pregnant_and_breastfeeding_date_ranges << {:start_date => survival_start_date,
+          :end_date   => survival_end_date
+        }
+      end
+    end
+  end
+  
 end
