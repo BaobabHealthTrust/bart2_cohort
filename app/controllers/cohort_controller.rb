@@ -9,6 +9,8 @@ class CohortController < ActionController::Base
   @@children_join = "AND TRUNCATE(DATEDIFF(ftc.earliest_start_date, ftc.birthdate)/365, 3) >= 0 AND
       TRUNCATE(DATEDIFF(ftc.earliest_start_date, ftc.birthdate)/365, 0) <= 14"
 
+  @@pmtct_join = ""
+
   def initialize
 	
 		@@first_registration_date = FlatCohortTable.find(
@@ -2628,7 +2630,7 @@ class CohortController < ActionController::Base
   def survival_analysis_field
     
     @data = []
-    if params[:start] and params[:end] && params[:cat].match("generic")
+    if params[:start] and params[:end]
 
       @start_date =   params[:start]
       @end_date   =   params[:end]
@@ -2794,9 +2796,52 @@ class CohortController < ActionController::Base
     return patients
   end
 
+  def new_reg_pmtct(start_date, end_date)
+
+    patients = new_reg_generic(start_date, end_date, @@pmtct_join)
+    return patients
+  end
+
+  def on_art_pmtct(start_date, end_date)
+
+    patients = on_art_generic(start_date, end_date, @@pmtct_join)
+    return patients
+  end
+
+  def dead_pmtct(start_date, end_date)
+
+    patients = dead_generic(start_date, end_date, @@pmtct_join)
+    return patients
+  end
+
+  def defaulter_pmtct(start_date, end_date)
+
+    patients = defaulter_generic(start_date, end_date, @@pmtct_join)
+    return patients
+  end
+
+  def art_stop_pmtct(start_date, end_date)
+
+    patients = art_stop_generic(start_date, end_date, @@pmtct_join)
+    return patients
+  end
+
+  def transfer_out_pmtct(start_date, end_date)
+
+    patients = transfer_out_generic(start_date, end_date, @@pmtct_join)
+    return patients
+  end
+
+  def unknown_pmtct(start_date, end_date)
+
+    patients = new_reg_pmtct(start_date, end_date) - (on_art_pmtct(start_date, end_date) +
+        dead_pmtct(start_date, end_date) + defaulter_pmtct(start_date, end_date) +
+        art_stop_pmtct(start_date, end_date) + transfer_out_pmtct(start_date, end_date))
+    return patients
+  end
+
   def survival_analysis_index
-    params[:start_date] = params[:start_date].to_date - 2.years
-    params[:end_date] = params[:end_date].to_date - 2.years
+    
     survival_start_date = params[:start_date].to_date
     survival_end_date = params[:end_date].to_date
 
