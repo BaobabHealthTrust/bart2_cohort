@@ -476,13 +476,13 @@ class CohortController < ActionController::Base
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT 
-                                      ft2.patient_id
+                                      ft1.patient_id
                                   FROM
-                                      flat_table1 ft2
+                                      flat_table1 ft1
                                           INNER join
-                                      flat_table1 ftc ON ftc.patient_id = ft2.patient_id
+                                      flat_cohort_table ftc ON ftc.patient_id = ft1.patient_id
                                           INNER JOIN
-                                      encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
+                                      encounter e ON e.encounter_id = ft1.pregnant_yes_enc_id
                                           and e.voided = 0
                                           AND e.encounter_type IN (52)
                                   WHERE
@@ -490,12 +490,12 @@ class CohortController < ActionController::Base
                                           AND e.encounter_datetime <= '#{end_date}')
                                           AND (ftc.earliest_start_date >= '#{start_date}'
                                           AND ftc.earliest_start_date <= '#{end_date}')
-                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                          AND DATEDIFF(ft1.pregnant_yes_v_date,
                                               ftc.earliest_start_date) <= 30
-                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                          AND DATEDIFF(ft1.pregnant_yes_v_date,
                                               ftc.earliest_start_date) > - 1
-                                          AND ft2.pregnant_yes = 'Yes'
-                                  GROUP BY ft2.patient_id
+                                          AND ft1.pregnant_yes = 'Yes'
+                                  GROUP BY ft1.patient_id
                                   UNION ALL
                                   SELECT 
                                       ft2.patient_id
@@ -550,31 +550,31 @@ class CohortController < ActionController::Base
     end_date = @@end_date.to_date.strftime('%Y-%m-%d 23:59:59')
 
     patients = FlatCohortTable.find_by_sql("SELECT 
-                                      ft2.patient_id
+                                      ft1.patient_id
                                   FROM
-                                      flat_table1 ft2
+                                      flat_table1 ft1
                                           INNER join
-                                      flat_table1 ftc ON ftc.patient_id = ft2.patient_id
+                                      flat_cohort_table ftc ON ftc.patient_id = ft1.patient_id
                                           INNER JOIN
-                                      encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
+                                      encounter e ON e.encounter_id = ft1.pregnant_yes_enc_id
                                           and e.voided = 0
                                           AND e.encounter_type IN (52)
                                   WHERE
                                       e.encounter_datetime <= '#{end_date}'
                                           AND ftc.earliest_start_date <= '#{end_date}'
-                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                          AND DATEDIFF(ft1.pregnant_yes_v_date,
                                               ftc.earliest_start_date) <= 30
-                                          AND DATEDIFF(ft2.pregnant_yes_v_date,
+                                          AND DATEDIFF(ft1.pregnant_yes_v_date,
                                               ftc.earliest_start_date) > - 1
-                                          AND ft2.pregnant_yes = 'Yes'
-                                  GROUP BY ft2.patient_id
+                                          AND ft1.pregnant_yes = 'Yes'
+                                  GROUP BY ft1.patient_id
                                   UNION ALL
                                   SELECT 
                                       ft2.patient_id
                                   FROM
                                       flat_table2 ft2
                                           INNER join
-                                      flat_table1 ftc ON ftc.patient_id = ft2.patient_id
+                                      flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                                           INNER JOIN
                                       encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
                                           and e.voided = 0
