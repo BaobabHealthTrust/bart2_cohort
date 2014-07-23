@@ -2639,9 +2639,7 @@ class CohortController < ActionController::Base
           " '#{params[:end].to_date.to_s} 23:59:59')")
       
       $survival_logger["#{params[:field].strip}_#{params[:cat].strip}" +
-          "_#{params[:start].to_date.to_s}_#{params[:end].to_date.to_s}"] = @data
-
-      puts  $survival_logger.keys
+          "_#{params[:start].to_date.to_s}_#{params[:end].to_date.to_s}"] = @data     
     end
     
     render :text => @data.to_json
@@ -2726,10 +2724,7 @@ class CohortController < ActionController::Base
     key = "art_stop_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
     return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
     
-    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
-                                        ft2.visit_date,
-                                        ftc.earliest_start_date,
-                                        ft2.current_hiv_program_state
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id                                        
                                     FROM flat_table2 ft2
                                         INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                                     WHERE visit_date = (SELECT max(DATE(encounter_datetime)) from encounter
@@ -2748,11 +2743,7 @@ class CohortController < ActionController::Base
     key = "transfer_out_generic_#{start_date.to_date.to_s}_#{end_date.to_date.to_s}"
     return $survival_logger[key] if !$survival_logger[key].blank? and join_string.blank?
     
-    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id,
-                  ft2.visit_date,
-                  ft2.current_hiv_program_start_date,
-                  ftc.earliest_start_date,
-                  ft2.current_hiv_program_state
+    patients = FlatCohortTable.find_by_sql("SELECT ft2.patient_id
                 FROM flat_table2 ft2
                     INNER JOIN flat_cohort_table ftc ON ftc.patient_id = ft2.patient_id
                 WHERE visit_date = (SELECT max(DATE(encounter_datetime)) from encounter
@@ -2844,7 +2835,7 @@ class CohortController < ActionController::Base
                                           INNER JOIN
                                       encounter e ON e.encounter_id = ft1.pregnant_yes_enc_id
                                           and e.voided = 0
-                                          AND e.encounter_type IN (52)
+                                          AND e.encounter_type = 52
                                   WHERE
                                       (e.encounter_datetime >= '#{start_date}'
                                           AND e.encounter_datetime <= '#{end_date}')
@@ -2866,7 +2857,7 @@ class CohortController < ActionController::Base
                                           INNER JOIN
                                       encounter e ON e.encounter_id = ft2.pregnant_yes_enc_id
                                           and e.voided = 0
-                                          AND e.encounter_type IN (53)
+                                          AND e.encounter_type = 53
                                   WHERE
                                       (e.encounter_datetime >= '#{start_date}'
                                           AND e.encounter_datetime <= '#{end_date}')
@@ -2877,9 +2868,8 @@ class CohortController < ActionController::Base
                                           AND DATEDIFF(ft2.visit_date,
                                               ftc.earliest_start_date) > - 1
                                           AND ft2.pregnant_yes = 'Yes'
-                                  GROUP BY ft2.patient_id").map(&:patient_id)
-    
-    return (women_by_reason_for_eligibility | women_by_pregnant_encounter)
+                                  GROUP BY ft2.patient_id").map(&:patient_id)    
+    return (women_by_pregnant_encounter | women_by_reason_for_eligibility)
   end
 
   def on_art_pmtct(start_date, end_date)
