@@ -22,6 +22,13 @@
         text-align: center;
         min-width: 70px;
       }
+      .version{
+          font-style: italic;
+          font-size: 0.6em;
+          margin-right: 5px;
+          float: right;
+          padding-top: 10px;
+      }
     </style>
   </head>
   <body>
@@ -32,7 +39,7 @@
         </th>
         <th colspan="4" class="header" style="background-color: #6281A7;
             padding: 10px; color: #fff; font-weight: normal;">
-          <span id="qtr">{quarter}</span> Cohort Report
+          <span id="qtr">{quarter}</span> Cohort Report <span class="version"><%= VERSION %></span>
         </th>
       </tr>
       <tr>
