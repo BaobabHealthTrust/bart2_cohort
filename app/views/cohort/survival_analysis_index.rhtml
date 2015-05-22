@@ -29,7 +29,7 @@
           float: right;
           padding-top: 10px;
       }
-            
+
     </style>
   </head>
   <body>
@@ -42,7 +42,7 @@
             padding: 10px; color: #fff; font-weight: normal;">
 
           <span id="qtr"><%= params[:start_date].to_date.strftime("%Y")  + "&nbsp-&nbsp" + {1 => "1<sup>st</sup>",
-              4 => "2<sup>nd</sup>", 7 => "3<sup>rd</sup>", 10 => "4<sup>th</sup>"}[params[:start_date].to_date.month] + " Quarter"%></span> Survival Analysis  <span class="version"><%= VERSION %></span>
+              4 => "2<sup>nd</sup>", 7 => "3<sup>rd</sup>", 10 => "4<sup>th</sup>"}[params[:start_date].to_date.month] + " Quarter"%></span> Survival Analysis  <span class="version"><%= APP_VERSION %></span>
         </th>
       </tr>
 

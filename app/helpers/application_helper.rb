@@ -2,6 +2,6 @@
 module ApplicationHelper
 
   def version
-    "#{VERSION}"
+    "#{APP_VERSION}"
   end
 end
